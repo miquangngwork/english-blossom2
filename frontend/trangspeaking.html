@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speaking Coach - English Blossom</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; }
+    .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .mic-active { animation: pulse 1.5s infinite; background: #ef4444 !important; border-color: #ef4444 !important; color: white !important; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    .hidden { display: none !important; }
+  </style>
+ </head>
+ <body class="h-full w-full bg-gray-50">
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+      <div class="flex items-center gap-4">
+          <a href="trangchedohoc.html" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full transition">←</a>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">🎙️ Speaking Coach</h1>
+            <p class="text-xs text-gray-500">Luyện tập & Chấm điểm AI</p>
+          </div>
+      </div>
+      
+      <div class="bg-white p-1 rounded-xl shadow-sm border border-gray-200 flex mt-4 md:mt-0">
+        <button onclick="switchMode('ielts')" id="tabIelts" class="px-5 py-2 rounded-lg text-sm font-bold transition-all bg-pink-500 text-white shadow-md">IELTS</button>
+        <button onclick="switchMode('interview')" id="tabInterview" class="px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-100 transition-all">Social Interview</button>
+        <button onclick="toggleAICamera()" class="ml-4 bg-gray-800 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-700 flex items-center gap-2">
+    👁️ AI Camera: <span id="aiStatus">OFF</span>
+</button>
+      </div>
+    </div>
+
+    <main class="grid lg:grid-cols-12 gap-6">
+      
+      <div id="recordPanel" class="lg:col-span-7 bg-white rounded-2xl shadow-lg p-6 border border-pink-100 h-fit">
+        
+        <div class="flex justify-between items-center mb-4 border-b pb-4">
+           <span id="modeBadge" class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-xs font-bold uppercase">IELTS</span>
+           
+           <div id="ieltsPartSelector" class="flex items-center gap-2">
+               <label class="text-xs font-bold text-gray-500">Part:</label>
+               <select id="partSelect" onchange="loadTopic()" class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-1.5 font-semibold">
+                   <option value="1">Part 1 (Giao lưu)</option>
+                   <option value="2" selected>Part 2 (Cue Card)</option>
+                   <option value="3">Part 3 (Thảo luận)</option>
+               </select>
+           </div>
+           
+           <button onclick="loadTopic()" class="text-xs flex items-center gap-1 text-gray-500 hover:text-pink-600 font-bold border px-2 py-1 rounded hover:bg-gray-50">
+               🔄 Đổi câu hỏi
+           </button>
+        </div>
+
+        <div class="mb-6 min-h-[100px]">
+           <h2 id="topicText" class="text-xl font-bold text-gray-800 leading-relaxed">Đang tải chủ đề...</h2>
+           <div id="hintBox" class="hidden mt-3 bg-yellow-50 p-2 rounded border border-yellow-200">
+               <p class="text-xs text-yellow-700 font-bold">🎯 Gợi ý cấu trúc & từ vựng:</p>
+               <p id="hintText" class="text-xs text-gray-700 italic whitespace-pre-line"></p>
+           </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-4 pt-4 border-t border-gray-100">
+           <button id="micBtn" onclick="toggleMic()" class="w-20 h-20 rounded-full border-4 border-pink-500 text-3xl text-pink-500 flex items-center justify-center hover:bg-pink-50 transition-all shadow-sm">🎤</button>
+           <p id="statusText" class="text-gray-400 text-sm font-medium">Nhấn mic để trả lời</p>
+           
+           <div class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 min-h-[80px]">
+              <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Transcript:</p>
+              <p id="transcriptPreview" class="text-gray-700 text-sm">...</p>
+           </div>
+
+           <button id="submitBtn" onclick="submitAnswer()" class="hidden w-full bg-gray-800 text-white py-3 rounded-xl font-bold hover:bg-gray-900 transition-all shadow-lg">✨ Chấm điểm ngay</button>
+        </div>
+      </div>
+
+      <div id="resultPanel" class="lg:col-span-5 hidden fade-in bg-white rounded-2xl shadow-lg p-6 border border-gray-100 h-fit max-h-screen overflow-y-auto">
+        
+        <div id="viewIelts" class="hidden">
+           <div class="flex items-center justify-between border-b pb-4 mb-4">
+              <div>
+                 <p class="text-gray-400 text-[10px] font-bold uppercase">Overall Band</p>
+                 <div class="text-6xl font-black text-pink-600" id="ieltsBand">0.0</div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-right">
+                 <div class="bg-pink-50 p-2 rounded"><div class="text-[10px] text-gray-500">Fluency</div><b id="ieltsFC" class="text-pink-700">-</b></div>
+                 <div class="bg-pink-50 p-2 rounded"><div class="text-[10px] text-gray-500">Vocab</div><b id="ieltsLR" class="text-pink-700">-</b></div>
+                 <div class="bg-pink-50 p-2 rounded"><div class="text-[10px] text-gray-500">Grammar</div><b id="ieltsGRA" class="text-pink-700">-</b></div>
+                 <div class="bg-pink-50 p-2 rounded"><div class="text-[10px] text-gray-500">Pronun</div><b id="ieltsP" class="text-pink-700">-</b></div>
+              </div>
+           </div>
+           
+           <div class="space-y-4">
+              <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                 <h4 class="font-bold text-blue-800 text-sm mb-2">💡 Gợi ý nâng cấp (Band 8.0)</h4>
+                 <p id="ieltsBetter" class="text-sm text-gray-800 italic leading-relaxed text-justify">...</p>
+              </div>
+              <div>
+                 <h4 class="font-bold text-gray-800 text-xs uppercase mb-2">Sửa lỗi ngữ pháp:</h4>
+                 <div id="ieltsCorrection" class="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100"></div>
+              </div>
+           </div>
+        </div>
+
+        <div id="viewInterview" class="hidden">
+            <div class="text-center mb-6 border-b pb-4">
+               <p class="text-gray-400 text-[10px] font-bold uppercase">Độ thuyết phục</p>
+               <div class="text-6xl font-black text-blue-600" id="intScore">0</div>
+               <p id="intComment" class="text-blue-600 font-bold text-sm mt-1">...</p>
+            </div>
+
+            <div class="space-y-5">
+               <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                  <h4 class="font-bold text-green-800 text-sm mb-2 flex items-center gap-1">🚀 Chiến thuật trả lời (Idea Strategy)</h4>
+                  <div id="intIdea" class="text-sm text-gray-800 leading-relaxed text-justify whitespace-pre-line"></div>
+               </div>
+               
+               <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                  <h4 class="font-bold text-indigo-800 text-sm mb-2">🧠 Phân tích Logic</h4>
+                  <p id="intLogic" class="text-sm text-gray-700 text-justify"></p>
+               </div>
+               
+               <div>
+                  <h4 class="font-bold text-gray-800 text-xs uppercase mb-2">Keywords đắt giá:</h4>
+                  <div id="intKeywords" class="flex flex-wrap gap-2"></div>
+               </div>
+            </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:5000/api";
+    let currentMode = 'ielts';
+    let isRecording = false;
+    let recognition = null;
+    let finalTranscript = "";
+
+    function getHeaders() {
+        const token = localStorage.getItem("token");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${token}`;
+        return headers;
+    }
+
+    function switchMode(mode) {
+        currentMode = mode;
+        const btnIelts = document.getElementById('tabIelts');
+        const btnInt = document.getElementById('tabInterview');
+        const partSel = document.getElementById('ieltsPartSelector');
+        const badge = document.getElementById('modeBadge');
+        const micBtn = document.getElementById('micBtn');
+
+        document.getElementById('resultPanel').classList.add('hidden');
+
+        if (mode === 'ielts') {
+            btnIelts.className = "px-5 py-2 rounded-lg text-sm font-bold bg-pink-500 text-white shadow-md";
+            btnInt.className = "px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-100";
+            partSel.classList.remove('hidden'); // HIỆN chọn Part
+            badge.innerText = "IELTS";
+            badge.className = "bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-xs font-bold uppercase";
+            micBtn.className = "w-20 h-20 rounded-full border-4 border-pink-500 text-3xl text-pink-500 flex items-center justify-center hover:bg-pink-50 shadow-sm";
+        } else {
+            btnInt.className = "px-5 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md";
+            btnIelts.className = "px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-100";
+            partSel.classList.add('hidden'); // ẨN chọn Part
+            badge.innerText = "INTERVIEW";
+            badge.className = "bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase";
+            micBtn.className = "w-20 h-20 rounded-full border-4 border-blue-500 text-3xl text-blue-500 flex items-center justify-center hover:bg-blue-50 shadow-sm";
+        }
+        loadTopic();
+    }
+
+    let latestTopicData = null;
+
+    async function loadTopic() {
+        // Lấy Part hiện tại
+        const part = document.getElementById('partSelect').value;
+        
+        document.getElementById('topicText').innerHTML = `<span class="animate-pulse text-gray-400">⏳ AI đang tìm câu hỏi...</span>`;
+        document.getElementById('submitBtn').classList.add('hidden');
+        document.getElementById('transcriptPreview').innerText = "...";
+        document.getElementById('hintBox').classList.add('hidden');
+        
+        try {
+            // Gửi cả mode và part lên server
+            const res = await fetch(`${API_BASE}/speaking/topic?mode=${currentMode}&part=${part}`, { headers: getHeaders() });
+            if (!res.ok) {
+                if (res.status === 401) {
+                    document.getElementById('topicText').innerHTML = "⚠️ Bạn chưa đăng nhập. Vui lòng đăng nhập lại.";
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            latestTopicData = data;
+            
+            if (!data || !data.question) {
+                document.getElementById('topicText').innerHTML = "⚠️ Không nhận được câu hỏi. Hãy thử lại.";
+                return;
+            }
+
+            // Format xuống dòng nếu là câu hỏi dài
+            document.getElementById('topicText').innerHTML = data.question.replace(/\n/g, "<br>");
+            
+            // HintBox sẽ chỉ hiển thị khi AI phát hiện struggling
+        } catch (e) {
+            console.error(e);
+            document.getElementById('topicText').innerHTML = "⚠️ Lỗi tải câu hỏi. Vui lòng thử lại.";
+        }
+    }
+
+    // (Phần logic Mic và Submit giữ nguyên như cũ, chỉ update UI hiển thị)
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.onstart = () => {
+            document.getElementById('statusText').innerText = "Đang thu âm...";
+        };
+        recognition.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + '. ';
+                else interim += event.results[i][0].transcript;
+            }
+            document.getElementById('transcriptPreview').textContent = finalTranscript + interim;
+        };
+        recognition.onerror = (event) => {
+            console.error("Speech error:", event.error);
+            document.getElementById('statusText').innerText = `Lỗi mic: ${event.error}`;
+            isRecording = false;
+            document.getElementById('micBtn').classList.remove('mic-active');
+        };
+        recognition.onend = () => {
+            if (isRecording) {
+                isRecording = false;
+                document.getElementById('micBtn').classList.remove('mic-active');
+                document.getElementById('statusText').innerText = "Đã dừng.";
+                document.getElementById('submitBtn').classList.remove('hidden');
+            }
+        };
+    }
+
+    function toggleMic() {
+        if (!recognition) {
+            alert("Trình duyệt không hỗ trợ Speech Recognition. Hãy dùng Chrome.");
+            return;
+        }
+        if (!isRecording) {
+            finalTranscript = "";
+            recognition.start();
+            isRecording = true;
+            document.getElementById('micBtn').classList.add('mic-active');
+            document.getElementById('statusText').innerText = "Đang thu âm...";
+            document.getElementById('submitBtn').classList.add('hidden');
+        } else {
+            recognition.stop();
+            isRecording = false;
+            document.getElementById('micBtn').classList.remove('mic-active');
+            document.getElementById('statusText').innerText = "Đã dừng.";
+            document.getElementById('submitBtn').classList.remove('hidden');
+        }
+    }
+
+    async function submitAnswer() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = "🤖 Chấm điểm...";
+        btn.disabled = true;
+
+        const payload = {
+            mode: currentMode,
+            question: document.getElementById('topicText').innerText,
+            transcript: finalTranscript || document.getElementById('transcriptPreview').innerText
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/speaking/eval`, {
+                method: "POST", headers: getHeaders(), body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            document.getElementById('resultPanel').classList.remove('hidden');
+            document.getElementById('viewIelts').classList.add('hidden');
+            document.getElementById('viewInterview').classList.add('hidden');
+
+            if (currentMode === 'ielts') {
+                document.getElementById('viewIelts').classList.remove('hidden');
+                document.getElementById('ieltsBand').innerText = data.band || "0.0";
+                document.getElementById('ieltsFC').innerText = data.fluency;
+                document.getElementById('ieltsLR').innerText = data.vocabulary;
+                document.getElementById('ieltsGRA').innerText = data.grammar;
+                document.getElementById('ieltsP').innerText = data.pronunciation;
+                document.getElementById('ieltsBetter').innerText = data.betterVersion;
+                const correctionEl = document.getElementById('ieltsCorrection');
+                const errors = Array.isArray(data.errorList) ? data.errorList : [];
+                if (errors.length > 0) {
+                    correctionEl.innerHTML = errors.map((e) => {
+                        const err = e.errorSpan || "";
+                        const fix = e.correction || "";
+                        const reason = e.reason || "";
+                        return `<div class="mb-2"><b>❌ ${err}</b><br/>✅ ${fix}${reason ? `<br/><span class=\"text-xs text-gray-600\">${reason}</span>` : ""}</div>`;
+                    }).join('');
+                } else if (data.correctedTranscript) {
+                    correctionEl.innerText = data.correctedTranscript;
+                } else {
+                    correctionEl.innerText = "✅ Không có lỗi ngữ pháp rõ ràng.";
+                }
+            } else {
+                document.getElementById('viewInterview').classList.remove('hidden');
+                document.getElementById('intScore').innerText = data.score;
+                document.getElementById('intComment').innerText = data.comment;
+                document.getElementById('intLogic').innerText = data.logicAnalysis;
+                // Hiển thị Idea Upgrade dạng chi tiết
+                document.getElementById('intIdea').innerText = data.ideaUpgrade;
+                
+                document.getElementById('intKeywords').innerHTML = (data.keywords || []).map(k => 
+                    `<span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold border border-blue-200">${k}</span>`
+                ).join('');
+            }
+        } catch (e) { alert("Lỗi: " + e.message); } 
+        finally { btn.innerText = "✨ Chấm điểm ngay"; btn.disabled = false; }
+    }
+
+    window.onload = () => loadTopic();
+// --- TÍCH HỢP CAMERA AI ---
+    let aiCamera = null;
+    let useAI = false;
+
+    // Hàm bật/tắt AI (Gắn vào nút Toggle nào đó trên giao diện)
+    async function toggleAICamera() {
+        const container = document.getElementById('aiCameraContainer');
+        
+        if (!useAI) {
+            // BẬT AI
+            if(confirm("👁️ Bật Camera cảm xúc?\n\nAI sẽ tự động hiện gợi ý khi thấy bạn nhăn mặt hoặc bối rối.")) {
+                useAI = true;
+                container.classList.remove('hidden');
+                
+                if (!aiCamera) {
+                    // Khởi tạo AI với callback xử lý
+                    aiCamera = new AICamera('aiVideo', (state, emotion) => {
+                        if (state === 'struggling') {
+                            showAutoHint(emotion);
+                        }
+                    });
+                }
+                await aiCamera.start();
+            }
+        } else {
+            // TẮT AI
+            useAI = false;
+            container.classList.add('hidden');
+            if (aiCamera) aiCamera.stop();
+        }
+    }
+
+    // Hàm tự động hiện gợi ý khi AI phát hiện khó khăn
+    function showAutoHint(_emotion) {
+        const hintBox = document.getElementById('hintBox'); // Hintbox ở cột trái
+        const hintText = document.getElementById('hintText');
+        
+        // Hiệu ứng rung nhẹ để gây chú ý
+        hintBox.classList.remove('hidden');
+        hintBox.classList.add('animate-bounce');
+        setTimeout(() => hintBox.classList.remove('animate-bounce'), 1000);
+
+        // Thông báo
+        const requiredWords = (latestTopicData && latestTopicData.requiredWords) || [];
+        const vocabText = requiredWords.length > 0
+            ? requiredWords.join(', ')
+            : "(Chưa có từ vựng gợi ý, hãy thử trả lời ngắn rồi mở rộng ý)";
+
+        const structureText = currentMode === 'interview'
+            ? "Cấu trúc: 1) Nêu ý chính  2) Giải thích lý do  3) Ví dụ/Trải nghiệm"
+            : "Cấu trúc: 1) Trả lời trực tiếp  2) Lý do  3) Ví dụ";
+
+        hintText.innerText = `${structureText}\nTừ vựng: ${vocabText}`;
+    }
+  </script>
+<div id="aiCameraContainer" class="fixed bottom-4 right-4 z-50 hidden transition-all">
+    <div class="relative w-32 h-24 border-2 border-blue-400 rounded-xl overflow-hidden shadow-lg bg-black">
+        <video id="aiVideo" width="320" height="240" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
+        <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] px-1">AI ON</div>
+    </div>
+</div>
+
+<script src="/_sdk/face-api.min.js"></script> <script src="/_sdk/ai_camera.js"></script>
+ </body>
+</html>

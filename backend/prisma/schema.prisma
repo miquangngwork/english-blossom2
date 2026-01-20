@@ -1,0 +1,165 @@
+// File: prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  profile   Profile?
+  vocab     UserVocab[]
+  assessments Assessment[]
+  tests     Test[]
+  speaking  SpeakingSession[]
+  activities Activity[]
+  achievements Achievement[]
+  requests Request[]
+  hardWords HardWord[]
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  goal        String   
+  interests   String[] 
+  occupation  String?  
+  levelCefr   String
+  timezone    String
+  dailyTarget Int
+  
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VocabWord {
+  id        String @id @default(uuid())
+  word      String
+  meaning   String
+  levelCefr String
+  topic     String
+  example   String? // Thêm trường ví dụ
+
+  users UserVocab[]
+}
+
+model UserVocab {
+  id        String   @id @default(uuid())
+  userId    String
+  vocabId   String
+  status    String   @default("new") 
+  batchId   String?  // Quan trọng: Mã bộ từ (VD: batch_171500000)
+  nextReview DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user  User      @relation(fields: [userId], references: [id])
+  vocab VocabWord @relation(fields: [vocabId], references: [id])
+}
+
+model Assessment {
+  id             String   @id @default(uuid())
+  userId         String
+  totalQuestions Int
+  finalScore     Float?
+  finalLevel     String?
+  createdAt      DateTime @default(now())
+  
+  items          AssessmentItem[]
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AssessmentItem {
+  id             String   @id @default(uuid())
+  assessmentId   String
+  difficulty     Float
+  skillTag       String
+  question       String
+  options        String[]
+  correctAnswer  String
+  userAnswer     String?
+  isCorrect      Boolean?
+  createdAt      DateTime @default(now())
+
+  assessment     Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+}
+
+// Các model khác (Test, SpeakingSession...) giữ nguyên
+model Test {
+  id        String   @id @default(uuid())
+  userId    String
+  score     Int
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+  items TestItem[]
+}
+
+model TestItem {
+  id      String @id @default(uuid())
+  testId  String
+  prompt  String
+  correct Boolean
+  test Test @relation(fields: [testId], references: [id])
+}
+
+model SpeakingSession {
+  id        String   @id @default(uuid())
+  userId    String
+  mode      String
+  transcript String
+  score     Float
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+}
+
+model HardWord {
+  id        String   @id @default(uuid())
+  userId    String
+  word      String
+  batchId   String?
+  reason    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, word, batchId])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  score     Float?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Achievement {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Request {
+  id        String   @id @default(uuid())
+  type      String
+  name      String?
+  email     String?
+  phone     String?
+  level     String?
+  timeslot  String?
+  message   String?
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+
+  // --- THÊM 2 DÒNG NÀY ĐỂ SỬA LỖI ---
+  userId    String?  // Để dấu ? vì khách vãng lai (chưa đăng nhập) cũng có thể gửi Request
+  user      User?    @relation(fields: [userId], references: [id])
+}

@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Management - English Blossom</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    .slide-in {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #fce7f3 0%, #ffffff 50%, #fff1f2 100%);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+    }
+    
+    .section-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .section-card:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #ec4899;
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: #e5e7eb;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    
+    .toggle-switch.active {
+      background: #ec4899;
+    }
+    
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .toggle-switch.active::after {
+      transform: translateX(24px);
+    }
+    
+    .nav-tab {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      color: #6b7280;
+    }
+    
+    .nav-tab:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    
+    .nav-tab.active {
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      color: white;
+    }
+    
+    .avatar-upload {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .avatar-upload:hover {
+      border-color: #ec4899;
+      transform: scale(1.05);
+    }
+    
+    .avatar-upload img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .avatar-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      color: white;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .avatar-upload:hover .avatar-overlay {
+      opacity: 1;
+    }
+    
+    .password-strength {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+    
+    .password-strength-bar {
+      height: 100%;
+      transition: all 0.3s ease;
+      width: 0%;
+    }
+    
+    .password-strength-bar.weak {
+      width: 33%;
+      background: #ef4444;
+    }
+    
+    .password-strength-bar.medium {
+      width: 66%;
+      background: #f59e0b;
+    }
+    
+    .password-strength-bar.strong {
+      width: 100%;
+      background: #10b981;
+    }
+    
+    .device-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .device-card:hover {
+      border-color: #ec4899;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.1);
+    }
+    
+    .device-card.current {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .success-toast {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #10b981;
+      z-index: 2000;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @media (max-width: 768px) {
+      .section-card {
+        padding: 1.5rem;
+      }
+      
+      .nav-tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full">
+  <div id="app" class="w-full h-full overflow-auto gradient-bg"><!-- Header -->
+   <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+     <div class="flex items-center justify-between">
+      <div class="flex items-center"><span class="text-3xl sm:text-4xl mr-3">⚙️</span>
+       <div>
+        <h1 id="pageTitle" class="text-xl sm:text-2xl font-bold gradient-text">Quản lý tài khoản</h1>
+        <p class="text-xs sm:text-sm text-gray-600">Cài đặt và bảo mật</p>
+       </div>
+      </div><button onclick="saveAllChanges()" class="btn-primary text-white px-4 sm:px-6 py-2 rounded-xl font-semibold text-sm sm:text-base"> 💾 Lưu </button>
+     </div>
+    </div>
+   </header>
+   <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8"><!-- Navigation Tabs -->
+    <div class="bg-white rounded-xl shadow-md p-2 mb-6 overflow-x-auto">
+     <div class="flex gap-2 min-w-max">
+      <div class="nav-tab active" onclick="switchTab('profile')"><span class="text-lg">👤</span> Hồ sơ
+      </div>
+      <div class="nav-tab" onclick="switchTab('security')"><span class="text-lg">🔒</span> Bảo mật
+      </div>
+      <div class="nav-tab" onclick="switchTab('notifications')"><span class="text-lg">🔔</span> Thông báo
+      </div>
+      <div class="nav-tab" onclick="switchTab('devices')"><span class="text-lg">📱</span> Thiết bị
+      </div>
+      <div class="nav-tab" onclick="switchTab('advanced')"><span class="text-lg">⚙️</span> Nâng cao
+      </div>
+     </div>
+    </div><!-- Profile Section -->
+    <div id="profileSection" class="fade-in">
+     <div class="section-card">
+      <h2 id="profileSectionTitle" class="text-2xl font-bold text-gray-800 mb-6">👤 Thông tin cá nhân</h2>
+      <div class="flex flex-col items-center mb-8">
+       <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()"><img id="avatarImage" src="https://api.dicebear.com/7.x/avataaars/svg?seed=User" alt="Avatar">
+        <div class="avatar-overlay">
+         📷 Đổi ảnh
+        </div>
+       </div><input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="handleAvatarChange(event)">
+       <p class="text-sm text-gray-500 mt-3">Nhấn để thay đổi ảnh đại diện</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4 mb-4">
+       <div><label class="block text-sm font-semibold text-gray-700 mb-2">Họ và tên</label> <input type="text" id="fullName" class="input-field" value="Nguyễn Văn An" placeholder="Nhập họ tên">
+       </div>
+       <div><label class="block text-sm font-semibold text-gray-700 mb-2">Email</label> <input type="email" id="email" class="input-field" value="user@example.com" placeholder="Nhập email">
+       </div>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4 mb-4">
+       <div><label class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại</label> <input type="tel" id="phone" class="input-field" value="0912345678" placeholder="Nhập số điện thoại">
+       </div>
+       <div><label class="block text-sm font-semibold text-gray-700 mb-2">Ngày sinh</label> <input type="date" id="birthday" class="input-field" value="1995-06-15">
+       </div>
+      </div>
+      <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Giới tính</label> <select id="gender" class="input-field"> <option value="male">Nam</option> <option value="female">Nữ</option> <option value="other">Khác</option> </select>
+      </div>
+      <div class="mb-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ</label> <textarea id="address" class="input-field" rows="3" placeholder="Nhập địa chỉ đầy đủ">123 Đường ABC, Phường XYZ, Quận 1, TP.HCM</textarea>
+      </div><button onclick="updateProfile()" class="btn-primary text-white px-6 py-2.5 rounded-lg font-semibold w-full sm:w-auto"> ✓ Lưu thay đổi </button>
+     </div>
+    </div><!-- Security Section -->
+    <div id="securitySection" class="hidden">
+     <div class="section-card">
+      <h2 id="securitySectionTitle" class="text-2xl font-bold text-gray-800 mb-6">🔒 Bảo mật</h2><!-- Change Password -->
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+       <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><span class="text-xl">🔑</span> Đổi mật khẩu</h3>
+       <div class="space-y-3">
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Mật khẩu hiện tại</label> <input type="password" id="currentPassword" class="input-field" placeholder="Nhập mật khẩu hiện tại">
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Mật khẩu mới</label> <input type="password" id="newPassword" class="input-field" placeholder="Nhập mật khẩu mới" oninput="checkPasswordStrength()">
+         <div class="password-strength">
+          <div id="passwordStrengthBar" class="password-strength-bar"></div>
+         </div>
+         <p id="passwordStrengthText" class="text-xs text-gray-500 mt-1">Độ mạnh mật khẩu</p>
+        </div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Xác nhận mật khẩu mới</label> <input type="password" id="confirmPassword" class="input-field" placeholder="Nhập lại mật khẩu mới">
+        </div>
+       </div><button onclick="changePassword()" class="btn-primary text-white px-6 py-2.5 rounded-lg font-semibold mt-4"> 🔄 Đổi mật khẩu </button>
+      </div><!-- Two Factor Authentication -->
+      <div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+       <div class="flex items-center justify-between mb-3">
+        <div>
+         <h3 class="font-bold text-gray-800 flex items-center gap-2"><span class="text-xl">🛡️</span> Xác thực 2 yếu tố (2FA)</h3>
+         <p class="text-sm text-gray-600 mt-1">Tăng cường bảo mật cho tài khoản</p>
+        </div>
+        <div class="toggle-switch" id="twoFactorToggle" onclick="toggle2FA()">
+        </div>
+       </div>
+       <div id="twoFactorDetails" class="hidden mt-4 p-3 bg-white rounded-lg">
+        <p class="text-sm text-gray-700 mb-2">✅ 2FA đã được bật</p>
+        <p class="text-xs text-gray-500">Mã xác thực sẽ được gửi qua SMS hoặc ứng dụng xác thực</p>
+       </div>
+      </div><!-- Login Sessions -->
+      <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+       <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2"><span class="text-xl">🕐</span> Quản lý phiên đăng nhập</h3>
+       <p class="text-sm text-gray-600 mb-4">Hiện có <strong id="activeSessions">3</strong> phiên đang hoạt động</p><button onclick="logoutAllDevices()" class="bg-red-100 text-red-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-red-200 transition-colors"> 🚪 Đăng xuất tất cả thiết bị </button>
+      </div>
+     </div>
+    </div><!-- Notifications Section -->
+    <div id="notificationsSection" class="hidden">
+     <div class="section-card">
+      <h2 id="notificationSectionTitle" class="text-2xl font-bold text-gray-800 mb-6">🔔 Cài đặt thông báo</h2>
+      <div class="space-y-4">
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+         <h3 class="font-semibold text-gray-800">Email thông báo</h3>
+         <p class="text-sm text-gray-600">Nhận thông báo qua email</p>
+        </div>
+        <div class="toggle-switch active" id="emailNotifToggle" onclick="toggleNotification('emailNotif')"></div>
+       </div>
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+         <h3 class="font-semibold text-gray-800">Thông báo đẩy</h3>
+         <p class="text-sm text-gray-600">Nhận thông báo trên trình duyệt</p>
+        </div>
+        <div class="toggle-switch active" id="pushNotifToggle" onclick="toggleNotification('pushNotif')"></div>
+       </div>
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+         <h3 class="font-semibold text-gray-800">Tiến độ học tập</h3>
+         <p class="text-sm text-gray-600">Thông báo về streak và thành tích</p>
+        </div>
+        <div class="toggle-switch active" id="progressNotifToggle" onclick="toggleNotification('progressNotif')"></div>
+       </div>
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+         <h3 class="font-semibold text-gray-800">Khuyến mãi và ưu đãi</h3>
+         <p class="text-sm text-gray-600">Nhận thông tin về các chương trình đặc biệt</p>
+        </div>
+        <div class="toggle-switch" id="promoNotifToggle" onclick="toggleNotification('promoNotif')"></div>
+       </div>
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+         <h3 class="font-semibold text-gray-800">Cập nhật hệ thống</h3>
+         <p class="text-sm text-gray-600">Thông báo về tính năng mới và bảo trì</p>
+        </div>
+        <div class="toggle-switch active" id="systemNotifToggle" onclick="toggleNotification('systemNotif')"></div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Devices Section -->
+    <div id="devicesSection" class="hidden">
+     <div class="section-card">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">📱 Thiết bị đã đăng nhập</h2>
+      <div id="devicesList"><!-- Current Device -->
+       <div class="device-card current">
+        <div class="flex items-start justify-between">
+         <div class="flex items-start gap-3"><span class="text-3xl">💻</span>
+          <div>
+           <h3 class="font-bold text-gray-800">Chrome trên Windows</h3>
+           <p class="text-sm text-gray-600 mt-1">IP: 192.168.1.100</p>
+           <p class="text-sm text-gray-600">Đăng nhập: Hôm nay lúc 14:30</p><span class="badge badge-success mt-2">Thiết bị hiện tại</span>
+          </div>
+         </div>
+        </div>
+       </div><!-- Other Devices -->
+       <div class="device-card">
+        <div class="flex items-start justify-between">
+         <div class="flex items-start gap-3"><span class="text-3xl">📱</span>
+          <div>
+           <h3 class="font-bold text-gray-800">Safari trên iPhone 13</h3>
+           <p class="text-sm text-gray-600 mt-1">IP: 192.168.1.105</p>
+           <p class="text-sm text-gray-600">Đăng nhập: 2 ngày trước</p>
+          </div>
+         </div><button onclick="revokeDevice('iPhone 13')" class="text-red-600 text-sm font-semibold hover:text-red-700"> ✕ Thu hồi </button>
+        </div>
+       </div>
+       <div class="device-card">
+        <div class="flex items-start justify-between">
+         <div class="flex items-start gap-3"><span class="text-3xl">💻</span>
+          <div>
+           <h3 class="font-bold text-gray-800">Chrome trên MacBook Pro</h3>
+           <p class="text-sm text-gray-600 mt-1">IP: 192.168.1.110</p>
+           <p class="text-sm text-gray-600">Đăng nhập: 1 tuần trước</p>
+          </div>
+         </div><button onclick="revokeDevice('MacBook Pro')" class="text-red-600 text-sm font-semibold hover:text-red-700"> ✕ Thu hồi </button>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Advanced Section -->
+    <div id="advancedSection" class="hidden">
+     <div class="section-card">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">⚙️ Tùy chọn nâng cao</h2>
+      <div class="space-y-4 mb-6">
+       <div><label class="block text-sm font-semibold text-gray-700 mb-2">Ngôn ngữ giao diện</label> <select id="language" class="input-field"> <option value="vi" selected>Tiếng Việt</option> <option value="en">English</option> <option value="ja">日本語</option> <option value="ko">한국어</option> </select>
+       </div>
+       <div><label class="block text-sm font-semibold text-gray-700 mb-2">Múi giờ</label> <select id="timezone" class="input-field"> <option value="Asia/Ho_Chi_Minh" selected>Việt Nam (GMT+7)</option> <option value="Asia/Tokyo">Nhật Bản (GMT+9)</option> <option value="America/New_York">New York (GMT-5)</option> <option value="Europe/London">London (GMT+0)</option> </select>
+       </div>
+       <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+         <h3 class="font-semibold text-gray-800">Chế độ tối</h3>
+         <p class="text-sm text-gray-600">Giao diện tối bảo vệ mắt</p>
+        </div>
+        <div class="toggle-switch" id="darkModeToggle" onclick="toggleDarkMode()"></div>
+       </div>
+      </div><!-- Data Management -->
+      <div class="border-t pt-6 mt-6">
+       <h3 class="font-bold text-gray-800 mb-4">📊 Quản lý dữ liệu</h3>
+       <div class="space-y-3"><button onclick="exportData()" class="w-full sm:w-auto bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-200 transition-colors"> 📥 Xuất dữ liệu cá nhân </button> <button onclick="showDeleteAccountModal()" class="w-full sm:w-auto bg-red-100 text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-red-200 transition-colors ml-0 sm:ml-3 mt-3 sm:mt-0"> 🗑️ Xóa tài khoản </button>
+       </div>
+       <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+        <p class="text-sm text-gray-700">⚠️ <strong>Lưu ý:</strong> Xóa tài khoản sẽ xóa vĩnh viễn tất cả dữ liệu của bạn và không thể khôi phục.</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </main><!-- Delete Account Modal -->
+   <div id="deleteAccountModal" class="modal-overlay hidden" onclick="closeDeleteModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+     <div class="text-center mb-6">
+      <div class="text-6xl mb-4">
+       ⚠️
+      </div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-2">Xác nhận xóa tài khoản</h2>
+      <p class="text-gray-600">Hành động này không thể hoàn tác. Tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn.</p>
+     </div>
+     <div class="mb-6"><label class="block text-sm font-semibold text-gray-700 mb-2"> Nhập "<strong>XÓA TÀI KHOẢN</strong>" để xác nhận </label> <input type="text" id="deleteConfirmInput" class="input-field" placeholder="XÓA TÀI KHOẢN">
+     </div>
+     <div class="flex gap-3"><button onclick="closeDeleteModal()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"> Hủy </button> <button onclick="confirmDeleteAccount()" class="flex-1 btn-danger text-white px-6 py-3 rounded-lg font-semibold"> Xóa tài khoản </button>
+     </div>
+    </div>
+   </div><!-- Success Toast -->
+   <div id="successToast" class="success-toast hidden">
+    <div class="flex items-center gap-3"><span class="text-2xl">✓</span>
+     <div>
+      <p class="font-semibold text-gray-800">Thành công!</p>
+      <p class="text-sm text-gray-600" id="toastMessage">Đã lưu thay đổi</p>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      page_title: "Quản lý tài khoản",
+      profile_section_title: "👤 Thông tin cá nhân",
+      security_section_title: "🔒 Bảo mật",
+      notification_section_title: "🔔 Cài đặt thông báo",
+      primary_color: "#ec4899",
+      secondary_color: "#f472b6",
+      accent_color: "#f43f5e",
+      text_color: "#1f2937",
+      background_color: "#fce7f3"
+    };
+
+    let userData = {
+      profile: {
+        fullName: "Nguyễn Văn An",
+        email: "user@example.com",
+        phone: "0912345678",
+        birthday: "1995-06-15",
+        gender: "male",
+        address: "123 Đường ABC, Phường XYZ, Quận 1, TP.HCM",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+      },
+      security: {
+        twoFactorEnabled: false,
+        activeSessions: 3
+      },
+      notifications: {
+        emailNotif: true,
+        pushNotif: true,
+        progressNotif: true,
+        promoNotif: false,
+        systemNotif: true
+      },
+      settings: {
+        language: "vi",
+        timezone: "Asia/Ho_Chi_Minh",
+        darkMode: false
+      }
+    };
+
+    // Load data from localStorage
+    function loadUserData() {
+      const saved = localStorage.getItem('englishBlossomAccount');
+      if (saved) {
+        userData = JSON.parse(saved);
+        populateFields();
+      }
+    }
+
+    // Save data to localStorage
+    function saveUserData() {
+      localStorage.setItem('englishBlossomAccount', JSON.stringify(userData));
+    }
+
+    // Populate form fields
+    function populateFields() {
+      document.getElementById('fullName').value = userData.profile.fullName;
+      document.getElementById('email').value = userData.profile.email;
+      document.getElementById('phone').value = userData.profile.phone;
+      document.getElementById('birthday').value = userData.profile.birthday;
+      document.getElementById('gender').value = userData.profile.gender;
+      document.getElementById('address').value = userData.profile.address;
+      document.getElementById('avatarImage').src = userData.profile.avatar;
+      
+      // Security
+      if (userData.security.twoFactorEnabled) {
+        document.getElementById('twoFactorToggle').classList.add('active');
+        document.getElementById('twoFactorDetails').classList.remove('hidden');
+      }
+      document.getElementById('activeSessions').textContent = userData.security.activeSessions;
+      
+      // Notifications
+      Object.keys(userData.notifications).forEach(key => {
+        const toggle = document.getElementById(key + 'Toggle');
+        if (toggle && userData.notifications[key]) {
+          toggle.classList.add('active');
+        }
+      });
+      
+      // Settings
+      document.getElementById('language').value = userData.settings.language;
+      document.getElementById('timezone').value = userData.settings.timezone;
+      if (userData.settings.darkMode) {
+        document.getElementById('darkModeToggle').classList.add('active');
+      }
+    }
+
+    // Switch tabs
+    function switchTab(tabName) {
+      // Hide all sections
+      document.getElementById('profileSection').classList.add('hidden');
+      document.getElementById('securitySection').classList.add('hidden');
+      document.getElementById('notificationsSection').classList.add('hidden');
+      document.getElementById('devicesSection').classList.add('hidden');
+      document.getElementById('advancedSection').classList.add('hidden');
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected section
+      document.getElementById(tabName + 'Section').classList.remove('hidden');
+      
+      // Add active class to clicked tab
+      event.target.closest('.nav-tab').classList.add('active');
+    }
+
+    // Avatar upload
+    function handleAvatarChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('avatarImage').src = e.target.result;
+          userData.profile.avatar = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Update profile
+    function updateProfile() {
+      userData.profile.fullName = document.getElementById('fullName').value;
+      userData.profile.email = document.getElementById('email').value;
+      userData.profile.phone = document.getElementById('phone').value;
+      userData.profile.birthday = document.getElementById('birthday').value;
+      userData.profile.gender = document.getElementById('gender').value;
+      userData.profile.address = document.getElementById('address').value;
+      
+      saveUserData();
+      showToast('Đã cập nhật thông tin cá nhân');
+    }
+
+    // Password strength checker
+    function checkPasswordStrength() {
+      const password = document.getElementById('newPassword').value;
+      const strengthBar = document.getElementById('passwordStrengthBar');
+      const strengthText = document.getElementById('passwordStrengthText');
+      
+      let strength = 0;
+      if (password.length >= 8) strength++;
+      if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+      if (password.match(/[0-9]/)) strength++;
+      if (password.match(/[^a-zA-Z0-9]/)) strength++;
+      
+      strengthBar.className = 'password-strength-bar';
+      if (strength <= 1) {
+        strengthBar.classList.add('weak');
+        strengthText.textContent = 'Mật khẩu yếu';
+        strengthText.style.color = '#ef4444';
+      } else if (strength <= 3) {
+        strengthBar.classList.add('medium');
+        strengthText.textContent = 'Mật khẩu trung bình';
+        strengthText.style.color = '#f59e0b';
+      } else {
+        strengthBar.classList.add('strong');
+        strengthText.textContent = 'Mật khẩu mạnh';
+        strengthText.style.color = '#10b981';
+      }
+    }
+
+    // Change password (backend)
+    async function changePassword() {
+      const current = document.getElementById('currentPassword').value;
+      const newPass = document.getElementById('newPassword').value;
+      const confirm = document.getElementById('confirmPassword').value;
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        showToast('Vui lòng đăng nhập để đổi mật khẩu', 'error');
+        return;
+      }
+      
+      if (!current || !newPass || !confirm) {
+        showToast('Vui lòng điền đầy đủ thông tin', 'error');
+        return;
+      }
+      
+      if (newPass !== confirm) {
+        showToast('Mật khẩu xác nhận không khớp', 'error');
+        return;
+      }
+      
+      if (newPass.length < 8) {
+        showToast('Mật khẩu phải có ít nhất 8 ký tự', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch("http://localhost:5000/api/me/change-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            currentPassword: current,
+            newPassword: newPass,
+          }),
+        });
+        
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(data.message || 'Đổi mật khẩu thất bại', 'error');
+          return;
+        }
+        
+        showToast('Đã đổi mật khẩu thành công');
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('passwordStrengthBar').className = 'password-strength-bar';
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ', 'error');
+      }
+    }
+
+    // Toggle 2FA
+    function toggle2FA() {
+      const toggle = document.getElementById('twoFactorToggle');
+      const details = document.getElementById('twoFactorDetails');
+      
+      toggle.classList.toggle('active');
+      userData.security.twoFactorEnabled = toggle.classList.contains('active');
+      
+      if (userData.security.twoFactorEnabled) {
+        details.classList.remove('hidden');
+        showToast('Đã bật xác thực 2 yếu tố');
+      } else {
+        details.classList.add('hidden');
+        showToast('Đã tắt xác thực 2 yếu tố');
+      }
+      
+      saveUserData();
+    }
+
+    // Logout all devices
+    function logoutAllDevices() {
+      const confirmLogout = document.createElement('div');
+      confirmLogout.className = 'modal-overlay';
+      confirmLogout.innerHTML = `
+        <div class="modal-content">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Xác nhận đăng xuất</h2>
+          <p class="text-gray-600 mb-6">Bạn sẽ bị đăng xuất khỏi tất cả thiết bị khác. Bạn có chắc chắn?</p>
+          <div class="flex gap-3">
+            <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+              Hủy
+            </button>
+            <button onclick="confirmLogoutAll()" class="flex-1 btn-danger text-white px-6 py-3 rounded-lg font-semibold">
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(confirmLogout);
+    }
+
+    function confirmLogoutAll() {
+      userData.security.activeSessions = 1;
+      document.getElementById('activeSessions').textContent = 1;
+      saveUserData();
+      document.querySelector('.modal-overlay').remove();
+      showToast('Đã đăng xuất tất cả thiết bị khác');
+    }
+
+    // Toggle notifications
+    function toggleNotification(type) {
+      const toggle = document.getElementById(type + 'Toggle');
+      toggle.classList.toggle('active');
+      userData.notifications[type] = toggle.classList.contains('active');
+      saveUserData();
+    }
+
+    // Revoke device
+    function revokeDevice(deviceName) {
+      const confirmRevoke = document.createElement('div');
+      confirmRevoke.className = 'modal-overlay';
+      confirmRevoke.innerHTML = `
+        <div class="modal-content">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Thu hồi quyền truy cập</h2>
+          <p class="text-gray-600 mb-6">Bạn muốn thu hồi quyền truy cập của <strong>${deviceName}</strong>?</p>
+          <div class="flex gap-3">
+            <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+              Hủy
+            </button>
+            <button onclick="confirmRevokeDevice('${deviceName}')" class="flex-1 btn-danger text-white px-6 py-3 rounded-lg font-semibold">
+              Thu hồi
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(confirmRevoke);
+    }
+
+    function confirmRevokeDevice(deviceName) {
+      userData.security.activeSessions--;
+      document.getElementById('activeSessions').textContent = userData.security.activeSessions;
+      saveUserData();
+      document.querySelector('.modal-overlay').remove();
+      showToast(`Đã thu hồi quyền truy cập của ${deviceName}`);
+      
+      // Remove device from list (simplified for demo)
+      event.target.closest('.device-card').remove();
+    }
+
+    // Toggle dark mode
+    function toggleDarkMode() {
+      const toggle = document.getElementById('darkModeToggle');
+      toggle.classList.toggle('active');
+      userData.settings.darkMode = toggle.classList.contains('active');
+      saveUserData();
+      showToast(userData.settings.darkMode ? 'Đã bật chế độ tối' : 'Đã tắt chế độ tối');
+    }
+
+    // Export data
+    function exportData() {
+      const dataStr = JSON.stringify(userData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'my-data-export.json';
+      link.click();
+      showToast('Đã xuất dữ liệu thành công');
+    }
+
+    // Delete account modal
+    function showDeleteAccountModal() {
+      document.getElementById('deleteAccountModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal(event) {
+      if (event) event.stopPropagation();
+      document.getElementById('deleteAccountModal').classList.add('hidden');
+      document.getElementById('deleteConfirmInput').value = '';
+    }
+
+    function confirmDeleteAccount() {
+      const input = document.getElementById('deleteConfirmInput').value;
+      if (input === 'XÓA TÀI KHOẢN') {
+        localStorage.removeItem('englishBlossomAccount');
+        closeDeleteModal();
+        showToast('Tài khoản đã được xóa');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        showToast('Vui lòng nhập đúng cụm từ xác nhận', 'error');
+      }
+    }
+
+    // Save all changes
+    function saveAllChanges() {
+      updateProfile();
+      userData.settings.language = document.getElementById('language').value;
+      userData.settings.timezone = document.getElementById('timezone').value;
+      saveUserData();
+      showToast('Đã lưu tất cả thay đổi');
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('successToast');
+      document.getElementById('toastMessage').textContent = message;
+      toast.classList.remove('hidden');
+      
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    // Element SDK
+    async function onConfigChange(config) {
+      document.getElementById('pageTitle').textContent = config.page_title || defaultConfig.page_title;
+      document.getElementById('profileSectionTitle').textContent = config.profile_section_title || defaultConfig.profile_section_title;
+      document.getElementById('securitySectionTitle').textContent = config.security_section_title || defaultConfig.security_section_title;
+      document.getElementById('notificationSectionTitle').textContent = config.notification_section_title || defaultConfig.notification_section_title;
+      
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      
+      document.querySelectorAll('.gradient-text').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)`;
+        el.style.webkitBackgroundClip = 'text';
+        el.style.webkitTextFillColor = 'transparent';
+        el.style.backgroundClip = 'text';
+      });
+      
+      document.querySelectorAll('.btn-primary').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      });
+      
+      document.querySelectorAll('.nav-tab.active').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      });
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["page_title", config.page_title || defaultConfig.page_title],
+        ["profile_section_title", config.profile_section_title || defaultConfig.profile_section_title],
+        ["security_section_title", config.security_section_title || defaultConfig.security_section_title],
+        ["notification_section_title", config.notification_section_title || defaultConfig.notification_section_title]
+      ]);
+    }
+
+    // Initialize
+    window.onload = function() {
+      loadUserData();
+      
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    };
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b1f0211b7209b41',t:'MTc2NjQwMDEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

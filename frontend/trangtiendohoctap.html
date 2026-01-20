@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Tracking - English Blossom</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes flame {
+      0%, 100% { transform: scale(1) rotate(-5deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+    }
+    
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes growBar {
+      from { width: 0; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #fce7f3 0%, #ffffff 50%, #fff1f2 100%);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-pink {
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+    }
+    
+    .btn-pink:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+    }
+    
+    .card-3d {
+      perspective: 1000px;
+      transition: transform 0.3s ease;
+    }
+    
+    .card-3d:hover {
+      transform: translateY(-5px);
+    }
+    
+    .flame-icon {
+      animation: flame 2s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(251, 146, 60, 0.5));
+    }
+    
+    .streak-day {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    
+    .streak-day.active {
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .streak-day.inactive {
+      background: #f3f4f6;
+      color: #9ca3af;
+    }
+    
+    .streak-day.today {
+      border: 3px solid #fbbf24;
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    }
+    
+    .chart-bar {
+      transition: all 0.5s ease;
+      cursor: pointer;
+    }
+    
+    .chart-bar:hover {
+      opacity: 0.8;
+      transform: scaleY(1.05);
+    }
+    
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+    
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.5s ease;
+    }
+    
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+      animation: sparkle 3s ease-in-out infinite;
+    }
+    
+    .milestone-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      color: #78350f;
+      box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+    }
+    
+    .achievement-card {
+      opacity: 0;
+      animation: slideInRight 0.5s ease-out forwards;
+    }
+    
+    .achievement-card.locked {
+      opacity: 0.5;
+      filter: grayscale(100%);
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full">
+  <div id="app" class="w-full h-full overflow-auto gradient-bg"><!-- Header -->
+   <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+     <div class="flex items-center"><span class="text-4xl mr-3">📊</span>
+      <div>
+       <h1 id="pageTitle" class="text-2xl font-bold gradient-text">Theo dõi tiến trình</h1>
+       <p class="text-sm text-gray-600">Xem quá trình học tập của bạn</p>
+      </div>
+     </div><button onclick="showSection('overview')" class="btn-pink text-white px-6 py-2 rounded-xl font-semibold"> 📈 Tổng quan </button>
+    </div>
+   </header>
+   <main class="max-w-7xl mx-auto px-6 py-8"><!-- Overview Section -->
+    <section id="overview" class="fade-in"><!-- Streak Card -->
+     <div class="bg-white rounded-2xl p-8 shadow-lg mb-8">
+      <div class="flex items-center justify-between mb-6">
+       <h2 id="streakTitle" class="text-3xl font-bold gradient-text">🔥 Streak học tập</h2><button onclick="simulateActivity()" class="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-semibold hover:bg-green-200 transition-colors text-sm"> ✅ Hoàn thành bài học </button>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6 mb-8">
+       <div class="stat-card bg-gradient-to-br from-orange-50 to-white p-6 rounded-xl border-2 border-orange-200 text-center">
+        <div class="flame-icon text-6xl mb-2">
+         🔥
+        </div>
+        <p class="text-4xl font-bold text-orange-600 mb-2" id="currentStreak">0</p>
+        <p class="text-gray-600 font-semibold">Ngày liên tiếp</p>
+       </div>
+       <div class="stat-card bg-gradient-to-br from-pink-50 to-white p-6 rounded-xl border-2 border-pink-200 text-center">
+        <div class="text-6xl mb-2">
+         🏆
+        </div>
+        <p class="text-4xl font-bold text-pink-600 mb-2" id="longestStreak">0</p>
+        <p class="text-gray-600 font-semibold">Streak dài nhất</p>
+       </div>
+       <div class="stat-card bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border-2 border-purple-200 text-center">
+        <div class="text-6xl mb-2">
+         📚
+        </div>
+        <p class="text-4xl font-bold text-purple-600 mb-2" id="totalActivities">0</p>
+        <p class="text-gray-600 font-semibold">Bài học hoàn thành</p>
+       </div>
+      </div><!-- Calendar View -->
+      <div class="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl border-2 border-gray-200">
+       <h3 class="text-xl font-bold text-gray-800 mb-4">Lịch học tập 30 ngày qua</h3>
+       <div id="streakCalendar" class="grid grid-cols-7 gap-2"></div>
+       <div class="flex justify-center gap-4 mt-4 text-sm">
+        <div class="flex items-center gap-2">
+         <div class="w-4 h-4 bg-gray-200 rounded"></div><span class="text-gray-600">Chưa học</span>
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-4 h-4 rounded" style="background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%)"></div><span class="text-gray-600">Đã học</span>
+        </div>
+       </div>
+      </div>
+      <div class="mt-6 text-center">
+       <p id="motivationText" class="text-lg text-gray-700 font-semibold">💪 Tiếp tục phấn đấu! Mỗi ngày học là một bước tiến!</p>
+      </div>
+     </div><!-- Progress Stats -->
+     <div class="grid md:grid-cols-2 gap-8 mb-8"><!-- Learning Progress -->
+      <div class="bg-white rounded-2xl p-8 shadow-lg">
+       <h2 id="progressTitle" class="text-2xl font-bold gradient-text mb-6">📈 Tiến trình học tập</h2>
+       <div class="space-y-6">
+        <div>
+         <div class="flex justify-between mb-2"><span class="font-semibold text-gray-700">Từ vựng đã học</span> <span class="font-bold text-pink-600" id="totalWords">0 từ</span>
+         </div>
+         <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div id="wordsProgress" class="h-full bg-gradient-to-r from-pink-500 to-pink-400 transition-all duration-500" style="width: 0%"></div>
+         </div>
+         <p class="text-sm text-gray-500 mt-1">Mục tiêu: 500 từ</p>
+        </div>
+        <div>
+         <div class="flex justify-between mb-2"><span class="font-semibold text-gray-700">Thời gian học</span> <span class="font-bold text-purple-600" id="totalTime">0 phút</span>
+         </div>
+         <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div id="timeProgress" class="h-full bg-gradient-to-r from-purple-500 to-purple-400 transition-all duration-500" style="width: 0%"></div>
+         </div>
+         <p class="text-sm text-gray-500 mt-1">Mục tiêu: 1000 phút</p>
+        </div>
+        <div>
+         <div class="flex justify-between mb-2"><span class="font-semibold text-gray-700">Điểm trung bình</span> <span class="font-bold text-green-600" id="avgScore">0/10</span>
+         </div>
+         <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div id="scoreProgress" class="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-500" style="width: 0%"></div>
+         </div>
+         <p class="text-sm text-gray-500 mt-1">Mục tiêu: 8/10</p>
+        </div>
+       </div><!-- Circular Progress -->
+       <div class="mt-8 flex justify-center">
+        <div class="relative">
+         <svg class="progress-ring" width="160" height="160"><circle class="text-gray-200" stroke="currentColor" stroke-width="12" fill="transparent" r="70" cx="80" cy="80" /> <circle id="overallProgressCircle" class="progress-ring-circle text-pink-500" stroke="currentColor" stroke-width="12" fill="transparent" r="70" cx="80" cy="80" stroke-dasharray="439.6" stroke-dashoffset="439.6" stroke-linecap="round" />
+         </svg>
+         <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <p class="text-3xl font-bold text-pink-600" id="overallProgress">0%</p>
+          <p class="text-sm text-gray-600">Hoàn thành</p>
+         </div>
+        </div>
+       </div>
+      </div><!-- Score Comparison Chart -->
+      <div class="bg-white rounded-2xl p-8 shadow-lg">
+       <h2 class="text-2xl font-bold gradient-text mb-6">📊 So sánh điểm số</h2>
+       <div class="mb-6">
+        <p class="text-gray-600 mb-4">Tiến bộ qua các bài kiểm tra gần nhất</p>
+        <div id="scoreChart" class="h-64 flex items-end justify-around gap-2"></div>
+        <div class="flex justify-around mt-2 text-xs text-gray-500" id="scoreChartLabels"></div>
+       </div>
+       <div class="grid grid-cols-2 gap-4 mt-6">
+        <div class="bg-green-50 p-4 rounded-xl border border-green-200 text-center">
+         <p class="text-2xl font-bold text-green-600" id="highestScore">0</p>
+         <p class="text-sm text-gray-600 mt-1">Điểm cao nhất</p>
+        </div>
+        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-center">
+         <p class="text-2xl font-bold text-blue-600" id="improvement">+0%</p>
+         <p class="text-sm text-gray-600 mt-1">Cải thiện</p>
+        </div>
+       </div>
+       <div class="mt-6 bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-xl border border-pink-200">
+        <p class="font-semibold text-gray-800 mb-2">💡 Nhận xét:</p>
+        <p id="performanceNote" class="text-gray-700 text-sm">Tiếp tục cố gắng! Hãy duy trì streak học tập để cải thiện điểm số.</p>
+       </div>
+      </div>
+     </div><!-- Achievements -->
+     <div class="bg-white rounded-2xl p-8 shadow-lg">
+      <h2 class="text-2xl font-bold gradient-text mb-6">🏅 Thành tích</h2>
+      <div class="grid md:grid-cols-4 gap-4" id="achievementsContainer">
+       <div class="achievement-card bg-gradient-to-br from-yellow-50 to-white p-6 rounded-xl border-2 border-yellow-200 text-center" style="animation-delay: 0.1s">
+        <div class="text-5xl mb-3">
+         🔥
+        </div>
+        <p class="font-bold text-gray-800 mb-1">Streak Master</p>
+        <p class="text-sm text-gray-600">Streak 7 ngày</p>
+        <div class="mt-3 text-xs font-semibold text-yellow-600" id="streak7Status">
+         🔒 Chưa đạt
+        </div>
+       </div>
+       <div class="achievement-card bg-gradient-to-br from-pink-50 to-white p-6 rounded-xl border-2 border-pink-200 text-center" style="animation-delay: 0.2s">
+        <div class="text-5xl mb-3">
+         📚
+        </div>
+        <p class="font-bold text-gray-800 mb-1">Bookworm</p>
+        <p class="text-sm text-gray-600">100 từ vựng</p>
+        <div class="mt-3 text-xs font-semibold text-pink-600" id="words100Status">
+         🔒 Chưa đạt
+        </div>
+       </div>
+       <div class="achievement-card bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border-2 border-purple-200 text-center" style="animation-delay: 0.3s">
+        <div class="text-5xl mb-3">
+         ⭐
+        </div>
+        <p class="font-bold text-gray-800 mb-1">Perfect Score</p>
+        <p class="text-sm text-gray-600">Điểm 10/10</p>
+        <div class="mt-3 text-xs font-semibold text-purple-600" id="perfect10Status">
+         🔒 Chưa đạt
+        </div>
+       </div>
+       <div class="achievement-card bg-gradient-to-br from-green-50 to-white p-6 rounded-xl border-2 border-green-200 text-center" style="animation-delay: 0.4s">
+        <div class="text-5xl mb-3">
+         🎯
+        </div>
+        <p class="font-bold text-gray-800 mb-1">Consistent Learner</p>
+        <p class="text-sm text-gray-600">Streak 30 ngày</p>
+        <div class="mt-3 text-xs font-semibold text-green-600" id="streak30Status">
+         🔒 Chưa đạt
+        </div>
+       </div>
+      </div>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script>
+    const defaultConfig = {
+      page_title: "Theo dõi tiến trình",
+      streak_title: "🔥 Streak học tập",
+      progress_title: "📈 Tiến trình học tập",
+      motivation_text: "💪 Tiếp tục phấn đấu! Mỗi ngày học là một bước tiến!",
+      primary_color: "#ec4899",
+      secondary_color: "#f472b6",
+      accent_color: "#f43f5e",
+      text_color: "#1f2937",
+      background_color: "#fce7f3"
+    };
+
+    let activityData = [];
+    let isLoading = false;
+
+    // Load data from localStorage
+    function loadDataFromLocalStorage() {
+      const savedData = localStorage.getItem('englishBlossomProgress');
+      if (savedData) {
+        activityData = JSON.parse(savedData);
+        updateAllStats();
+      }
+    }
+
+    // Save data to localStorage
+    function saveDataToLocalStorage() {
+      localStorage.setItem('englishBlossomProgress', JSON.stringify(activityData));
+    }
+
+    // Initialize app
+    function initApp() {
+      loadDataFromLocalStorage();
+      updateAllStats();
+    }
+
+    // Section navigation
+    function showSection(sectionId) {
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Calculate Streak
+    function calculateStreak() {
+      if (activityData.length === 0) return { current: 0, longest: 0 };
+
+      const dates = [...new Set(activityData.map(a => a.activity_date))].sort().reverse();
+      const today = new Date().toISOString().split('T')[0];
+      
+      let currentStreak = 0;
+      let longestStreak = 0;
+      let tempStreak = 0;
+      
+      // Calculate current streak
+      for (let i = 0; i < dates.length; i++) {
+        const expectedDate = new Date();
+        expectedDate.setDate(expectedDate.getDate() - i);
+        const expectedDateStr = expectedDate.toISOString().split('T')[0];
+        
+        if (dates[i] === expectedDateStr) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+      
+      // Calculate longest streak
+      for (let i = 0; i < dates.length; i++) {
+        if (i === 0) {
+          tempStreak = 1;
+        } else {
+          const prevDate = new Date(dates[i - 1]);
+          const currDate = new Date(dates[i]);
+          const diffDays = Math.floor((prevDate - currDate) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 1) {
+            tempStreak++;
+          } else {
+            longestStreak = Math.max(longestStreak, tempStreak);
+            tempStreak = 1;
+          }
+        }
+      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+      
+      return { current: currentStreak, longest: longestStreak };
+    }
+
+    // Update Streak Calendar
+    function updateStreakCalendar() {
+      const container = document.getElementById('streakCalendar');
+      container.innerHTML = '';
+      
+      const activeDates = new Set(activityData.map(a => a.activity_date));
+      const today = new Date();
+      
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayNum = date.getDate();
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'streak-day';
+        dayDiv.textContent = dayNum;
+        
+        if (activeDates.has(dateStr)) {
+          dayDiv.classList.add('active');
+        } else {
+          dayDiv.classList.add('inactive');
+        }
+        
+        if (dateStr === today.toISOString().split('T')[0]) {
+          dayDiv.classList.add('today');
+        }
+        
+        dayDiv.title = dateStr;
+        container.appendChild(dayDiv);
+      }
+    }
+
+    // Update Score Chart
+    function updateScoreChart() {
+      const testActivities = activityData
+        .filter(a => a.activity_type === 'test' || a.activity_type === 'assessment')
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .slice(-10);
+      
+      const chartContainer = document.getElementById('scoreChart');
+      const labelsContainer = document.getElementById('scoreChartLabels');
+      
+      chartContainer.innerHTML = '';
+      labelsContainer.innerHTML = '';
+      
+      if (testActivities.length === 0) {
+        chartContainer.innerHTML = '<p class="text-gray-400 text-center w-full">Chưa có dữ liệu kiểm tra</p>';
+        return;
+      }
+      
+      const maxScore = 10;
+      testActivities.forEach((activity, index) => {
+        const heightPercent = (activity.score / maxScore) * 100;
+        
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar flex-1 rounded-t-lg transition-all';
+        bar.style.height = `${heightPercent}%`;
+        bar.style.background = `linear-gradient(to top, ${defaultConfig.primary_color}, ${defaultConfig.secondary_color})`;
+        bar.title = `Bài ${index + 1}: ${activity.score}/10`;
+        
+        chartContainer.appendChild(bar);
+        
+        const label = document.createElement('div');
+        label.className = 'flex-1 text-center';
+        label.textContent = `${index + 1}`;
+        labelsContainer.appendChild(label);
+      });
+      
+      // Calculate improvement
+      if (testActivities.length >= 2) {
+        const firstScore = testActivities[0].score;
+        const lastScore = testActivities[testActivities.length - 1].score;
+        const improvement = ((lastScore - firstScore) / firstScore * 100).toFixed(0);
+        document.getElementById('improvement').textContent = improvement > 0 ? `+${improvement}%` : `${improvement}%`;
+        document.getElementById('improvement').style.color = improvement > 0 ? '#059669' : '#dc2626';
+      }
+    }
+
+    // Update All Statistics
+    function updateAllStats() {
+      // Streak
+      const streak = calculateStreak();
+      document.getElementById('currentStreak').textContent = streak.current;
+      document.getElementById('longestStreak').textContent = streak.longest;
+      document.getElementById('totalActivities').textContent = activityData.length;
+      
+      // Update calendar
+      updateStreakCalendar();
+      
+      // Words learned
+      const totalWords = activityData.reduce((sum, a) => sum + (a.words_learned || 0), 0);
+      document.getElementById('totalWords').textContent = `${totalWords} từ`;
+      const wordsPercent = Math.min((totalWords / 500) * 100, 100);
+      document.getElementById('wordsProgress').style.width = `${wordsPercent}%`;
+      
+      // Time spent
+      const totalTime = activityData.reduce((sum, a) => sum + (a.duration || 0), 0);
+      document.getElementById('totalTime').textContent = `${totalTime} phút`;
+      const timePercent = Math.min((totalTime / 1000) * 100, 100);
+      document.getElementById('timeProgress').style.width = `${timePercent}%`;
+      
+      // Average score
+      const testActivities = activityData.filter(a => a.score !== undefined && a.score !== null);
+      if (testActivities.length > 0) {
+        const avgScore = testActivities.reduce((sum, a) => sum + a.score, 0) / testActivities.length;
+        document.getElementById('avgScore').textContent = `${avgScore.toFixed(1)}/10`;
+        document.getElementById('scoreProgress').style.width = `${(avgScore / 10) * 100}%`;
+        
+        const highestScore = Math.max(...testActivities.map(a => a.score));
+        document.getElementById('highestScore').textContent = highestScore;
+        
+        // Overall progress
+        const overallPercent = Math.min(
+          ((wordsPercent + timePercent + (avgScore / 10 * 100)) / 3),
+          100
+        );
+        document.getElementById('overallProgress').textContent = `${Math.round(overallPercent)}%`;
+        
+        const circle = document.getElementById('overallProgressCircle');
+        const circumference = 439.6;
+        const offset = circumference - (overallPercent / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
+        
+        // Performance note
+        if (avgScore >= 8) {
+          document.getElementById('performanceNote').textContent = '🎉 Xuất sắc! Bạn đang học rất tốt. Hãy tiếp tục duy trì!';
+        } else if (avgScore >= 6) {
+          document.getElementById('performanceNote').textContent = '👍 Tốt lắm! Bạn đang tiến bộ đều đặn. Cố gắng thêm nhé!';
+        } else {
+          document.getElementById('performanceNote').textContent = '💪 Tiếp tục cố gắng! Hãy dành thêm thời gian ôn tập mỗi ngày.';
+        }
+      }
+      
+      // Update chart
+      updateScoreChart();
+      
+      // Update achievements
+      updateAchievements(streak, totalWords, testActivities);
+    }
+
+    // Update Achievements
+    function updateAchievements(streak, totalWords, testActivities) {
+      // Streak 7 days
+      const streak7 = document.getElementById('streak7Status');
+      if (streak.current >= 7 || streak.longest >= 7) {
+        streak7.textContent = '✅ Đã đạt';
+        streak7.style.color = '#059669';
+        streak7.parentElement.classList.remove('locked');
+      } else {
+        streak7.textContent = `🔒 ${streak.current}/7`;
+        streak7.parentElement.classList.add('locked');
+      }
+      
+      // 100 words
+      const words100 = document.getElementById('words100Status');
+      if (totalWords >= 100) {
+        words100.textContent = '✅ Đã đạt';
+        words100.style.color = '#059669';
+        words100.parentElement.classList.remove('locked');
+      } else {
+        words100.textContent = `🔒 ${totalWords}/100`;
+        words100.parentElement.classList.add('locked');
+      }
+      
+      // Perfect score
+      const perfect10 = document.getElementById('perfect10Status');
+      const hasPerfectScore = testActivities.some(a => a.score === 10);
+      if (hasPerfectScore) {
+        perfect10.textContent = '✅ Đã đạt';
+        perfect10.style.color = '#059669';
+        perfect10.parentElement.classList.remove('locked');
+      } else {
+        perfect10.textContent = '🔒 Chưa đạt';
+        perfect10.parentElement.classList.add('locked');
+      }
+      
+      // Streak 30 days
+      const streak30 = document.getElementById('streak30Status');
+      if (streak.current >= 30 || streak.longest >= 30) {
+        streak30.textContent = '✅ Đã đạt';
+        streak30.style.color = '#059669';
+        streak30.parentElement.classList.remove('locked');
+      } else {
+        streak30.textContent = `🔒 ${Math.max(streak.current, streak.longest)}/30`;
+        streak30.parentElement.classList.add('locked');
+      }
+    }
+
+    // Simulate Activity (for demo)
+    function simulateActivity() {
+      const button = event.target;
+      button.disabled = true;
+      button.innerHTML = '⏳ Đang lưu...';
+      
+      const today = new Date().toISOString().split('T')[0];
+      const activityTypes = ['vocabulary', 'test', 'speaking', 'game'];
+      const randomType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+      
+      const newActivity = {
+        activity_date: today,
+        activity_type: randomType,
+        score: randomType === 'test' ? Math.floor(Math.random() * 4) + 7 : Math.floor(Math.random() * 10) + 1,
+        duration: Math.floor(Math.random() * 30) + 10,
+        words_learned: randomType === 'vocabulary' ? Math.floor(Math.random() * 15) + 5 : 0,
+        timestamp: Date.now()
+      };
+      
+      activityData.push(newActivity);
+      saveDataToLocalStorage();
+      updateAllStats();
+      
+      button.innerHTML = '✅ Đã lưu!';
+      setTimeout(() => {
+        button.disabled = false;
+        button.innerHTML = '✅ Hoàn thành bài học';
+      }, 1500);
+    }
+
+    // Element SDK
+    async function onConfigChange(config) {
+      document.getElementById('pageTitle').textContent = config.page_title || defaultConfig.page_title;
+      document.getElementById('streakTitle').textContent = config.streak_title || defaultConfig.streak_title;
+      document.getElementById('progressTitle').textContent = config.progress_title || defaultConfig.progress_title;
+      document.getElementById('motivationText').textContent = config.motivation_text || defaultConfig.motivation_text;
+      
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      
+      document.querySelectorAll('.gradient-text').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${config.accent_color || defaultConfig.accent_color} 100%)`;
+        el.style.webkitBackgroundClip = 'text';
+        el.style.webkitTextFillColor = 'transparent';
+        el.style.backgroundClip = 'text';
+      });
+      
+      document.querySelectorAll('.btn-pink').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      });
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["page_title", config.page_title || defaultConfig.page_title],
+        ["streak_title", config.streak_title || defaultConfig.streak_title],
+        ["progress_title", config.progress_title || defaultConfig.progress_title],
+        ["motivation_text", config.motivation_text || defaultConfig.motivation_text]
+      ]);
+    }
+
+    // Initialize
+    window.onload = function() {
+      initApp();
+      
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    };
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b203e2cd4e310a7',t:'MTc2NjQxMzA0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

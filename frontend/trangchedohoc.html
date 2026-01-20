@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học từ vựng - English Blossom AI</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { box-sizing: border-box; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    .gradient-bg { background: linear-gradient(135deg, #fce7f3 0%, #ffffff 50%, #fff1f2 100%); }
+    .gradient-text { background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .btn-pink { transition: all 0.3s ease; background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); }
+    .btn-pink:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4); }
+    .card-3d { perspective: 1000px; transition: transform 0.3s ease; }
+    .card-3d:hover { transform: translateY(-5px); }
+    .flashcard { position: relative; width: 100%; height: 300px; transform-style: preserve-3d; transition: transform 0.6s; }
+    .flashcard.flipped { transform: rotateY(180deg); }
+    .flashcard-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 1.5rem; padding: 2rem; }
+    .flashcard-back { transform: rotateY(180deg); }
+    .word-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; }
+    .word-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: bold; background: white; border: 2px solid #fbcfe8; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; user-select: none; }
+    .word-cell:hover { background: #fce7f3; transform: scale(1.1); }
+    .word-cell.selected { background: #ec4899; color: white; border-color: #ec4899; }
+    .word-cell.found { background: #86efac; color: #166534; border-color: #86efac; }
+    .progress-bar { height: 8px; background: #fbcfe8; border-radius: 9999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); transition: width 0.3s ease; }
+    .hidden { display: none !important; }
+    .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+    @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full w-full">
+  <div id="app" class="w-full h-full overflow-auto gradient-bg">
+   <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+     <div class="flex items-center"><span class="text-4xl mr-3">🌸</span>
+      <div>
+       <h1 id="pageTitle" class="text-2xl font-bold gradient-text">English Blossom AI</h1>
+       <p class="text-sm text-gray-600">Học thông minh - Lộ trình cá nhân hóa</p>
+      </div>
+     </div><button onclick="showSection('menu')" class="btn-pink text-white px-6 py-2 rounded-xl font-semibold"> 📚 Menu </button>
+    <button onclick="toggleAICamera()" class="ml-4 bg-gray-800 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-700 flex items-center gap-2">
+    👁️ AI Camera: <span id="aiStatus">OFF</span>
+</button>
+     </div>
+   </header>
+
+   <main class="max-w-7xl mx-auto px-6 py-8">
+    <section id="menu" class="fade-in">
+     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="card-3d bg-white rounded-2xl p-6 shadow-lg cursor-pointer" onclick="showSection('assessment')">
+       <div class="text-5xl mb-4 text-center">🎯</div>
+       <h3 class="text-xl font-bold text-center mb-2 gradient-text">Test Đầu Vào</h3>
+       <p class="text-gray-600 text-center text-sm">AI Adaptive Test (A1-C1)</p>
+      </div>
+      <div class="card-3d bg-white rounded-2xl p-6 shadow-lg cursor-pointer" onclick="checkDataAndShow('learning')">
+       <div class="text-5xl mb-4 text-center">📖</div>
+       <h3 class="text-xl font-bold text-center mb-2 gradient-text">Học Từ Mới</h3>
+       <p class="text-gray-600 text-center text-sm">Lộ trình AI tạo riêng cho bạn</p>
+      </div>
+      <div class="card-3d bg-white rounded-2xl p-6 shadow-lg cursor-pointer" onclick="checkDataAndShow('games')">
+       <div class="text-5xl mb-4 text-center">🎮</div>
+       <h3 class="text-xl font-bold text-center mb-2 gradient-text">Game Ôn Tập</h3>
+       <p class="text-gray-600 text-center text-sm">Matching, Word Hunt, Speed</p>
+      </div>
+      <div class="card-3d bg-white rounded-2xl p-6 shadow-lg cursor-pointer" onclick="initTestSection()">
+       <div class="text-5xl mb-4 text-center">✅</div>
+       <h3 class="text-xl font-bold text-center mb-2 gradient-text">Kiểm Tra</h3>
+       <p class="text-gray-600 text-center text-sm">Câu hỏi tình huống (Context)</p>
+      </div>
+     </div>
+     <div class="mt-8 text-center text-gray-500 italic text-sm">
+        * Lưu ý: Hệ thống sử dụng AI thời gian thực, vui lòng đợi vài giây khi tạo nội dung.
+     </div>
+    </section>
+
+    <section id="assessment" class="hidden">
+     <div class="bg-white rounded-2xl p-8 shadow-lg max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold gradient-text mb-6 text-center">🎯 Đánh giá năng lực thực tế</h2>
+      
+      <div id="assessmentIntro" class="text-center">
+          <p class="mb-6 text-gray-600">AI sẽ đưa ra các câu hỏi để xác định trình độ của bạn (A1 đến C1).<br>Hệ thống sẽ tự động điều chỉnh độ khó dựa trên câu trả lời của bạn.</p>
+          <button onclick="startPlacement()" class="btn-pink text-white px-8 py-3 rounded-xl font-semibold">Bắt đầu Test</button>
+      </div>
+
+      <div id="assessmentLoading" class="hidden text-center py-10">
+          <div class="text-5xl mb-4 animate-bounce">🤖</div>
+          <p class="text-lg font-semibold text-pink-600">AI đang soạn câu hỏi mới phù hợp với bạn<span class="loading-dots"></span></p>
+      </div>
+
+      <div id="assessmentQuiz" class="hidden space-y-6">
+       <div class="mb-4">
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Độ khó hiện tại: <span id="currentDiffDisplay" class="font-bold text-pink-500">A1</span></span> 
+            <span id="assessmentScore">Tiến độ: 0/10</span>
+        </div>
+        <div class="progress-bar">
+         <div id="assessmentProgress" class="progress-fill" style="width: 0%"></div>
+        </div>
+       </div>
+       <div id="assessmentQuestion" class="bg-pink-50 p-6 rounded-xl min-h-[200px]">
+        </div>
+      </div>
+      
+      <div id="assessmentResult" class="hidden">
+        <div class="text-center">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="text-2xl font-bold gradient-text mb-4">Kết quả đánh giá</h3>
+            <div class="bg-pink-50 p-6 rounded-xl mb-6">
+                <p class="text-lg mb-2">Trình độ xác định: <span id="finalLevel" class="font-bold text-pink-600 text-2xl">Beginner</span></p>
+                <p class="text-gray-600 mt-2 italic" id="levelDescription">...</p>
+            </div>
+        </div>
+        
+        <div id="preferenceForm" class="bg-white border-2 border-pink-100 p-6 rounded-xl mb-6">
+            <h4 class="font-bold text-lg mb-4 text-pink-600 border-b pb-2">📋 Thiết lập lộ trình học tập chi tiết</h4>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Chủ đề quan tâm nhất:</label>
+                    <select id="topicSelect" class="w-full p-2 border border-pink-200 rounded-lg focus:border-pink-500 outline-none">
+                        <option value="Daily Communication">Giao tiếp hàng ngày (Daily Life)</option>
+                        <option value="Business English">Tiếng Anh công sở & Họp hành</option>
+                        <option value="Travel & Adventure">Du lịch & Khám phá văn hóa</option>
+                        <option value="Technology & IT">Công nghệ & Kỹ thuật (IT)</option>
+                        <option value="IELTS Academic">Từ vựng học thuật (IELTS/TOEIC)</option>
+                        <option value="Medical English">Tiếng Anh Y khoa</option>
+                        <option value="Marketing & Sales">Marketing & Bán hàng</option>
+                    </select>
+                </div>
+                <div>
+                     <label class="block text-gray-700 text-sm font-bold mb-2">Phong cách học:</label>
+                     <select id="styleSelect" class="w-full p-2 border border-pink-200 rounded-lg focus:border-pink-500 outline-none">
+                        <option value="formal">Trang trọng (Formal)</option>
+                        <option value="casual">Thân mật, tự nhiên (Casual/Slang)</option>
+                        <option value="idiomatic">Tập trung thành ngữ (Idioms)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Mục tiêu cụ thể (AI sẽ tối ưu ví dụ theo đây):</label>
+                <input type="text" id="userGoal" class="w-full p-2 border border-pink-200 rounded-lg" placeholder="VD: Viết email cho khách hàng, phỏng vấn xin việc..." value="Giao tiếp tự tin">
+            </div>
+        </div>
+
+        <button id="btnGenerate" onclick="submitPreferences()" class="w-full py-3 btn-pink text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+    ✨ AI Tạo lộ trình ngay
+</button>
+      </div>
+     </div>
+    </section>
+
+    <section id="learning" class="hidden">
+     <div class="bg-white rounded-2xl p-8 shadow-lg max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold gradient-text mb-6 text-center">📖 Học từ mới (AI Generated)</h2>
+      
+
+<div class="mb-4 flex justify-center items-center gap-2">
+    <select id="batchSelect" onchange="changeBatch()" class="flex-1 p-3 border-2 border-pink-300 rounded-xl bg-white text-gray-700 font-semibold shadow-sm focus:outline-none focus:border-pink-500 transition-all max-w-sm">
+        <option value="latest">⭐ Bộ từ mới nhất</option>
+        <option disabled>Đang tải danh sách...</option>
+    </select>
+    
+    <button onclick="generateNewBatch(this)" class="bg-pink-100 text-pink-600 px-4 py-3 rounded-xl font-bold hover:bg-pink-200 transition-all whitespace-nowrap border-2 border-pink-200 shadow-sm">
+        + Bộ mới
+    </button>
+</div>
+      <div class="mb-6">
+       <div class="flex justify-between text-sm text-gray-600 mb-2"><span>Từ <span id="learningCurrent">1</span>/<span id="learningTotal">20</span></span> <span id="learnedCount">Đã học: 0</span>
+       </div>
+       <div class="progress-bar">
+        <div id="learningProgress" class="progress-fill" style="width: 5%"></div>
+       </div>
+      </div>
+      <div class="flashcard cursor-pointer" id="flashcard" onclick="flipCard()">
+       <div class="flashcard-face flashcard-front bg-gradient-to-br from-pink-100 to-pink-50 shadow-xl border border-pink-200">
+        <div class="text-center w-full px-4">
+         <p class="text-sm text-pink-600 font-bold mb-4 uppercase tracking-widest">Vocabulary</p>
+         <h3 id="wordFront" class="text-5xl font-extrabold text-gray-800 mb-2">Loading...</h3>
+         <button onclick="playAudio(event)" class="mt-3 bg-white border border-pink-200 text-pink-600 px-4 py-2 rounded-full font-bold hover:bg-pink-50 hover:shadow-md transition-all flex items-center justify-center mx-auto gap-2">
+    🔊 Nghe phát âm
+</button>
+         <p id="wordType" class="text-lg text-pink-500 italic font-serif mb-4">...</p>
+         <p class="text-sm text-gray-400 mt-8">Nhấn để xem nghĩa</p>
+        </div>
+       </div>
+       <div class="flashcard-face flashcard-back bg-gradient-to-br from-rose-100 to-rose-50 shadow-xl border border-rose-200">
+        <div class="text-center w-full px-4">
+         <p class="text-sm text-rose-600 font-bold mb-4 uppercase tracking-widest">Meaning & Context</p>
+         <h3 id="wordBack" class="text-3xl font-bold text-gray-800 mb-4">...</h3>
+         <div class="bg-white/60 p-4 rounded-xl text-left inline-block shadow-sm">
+             <p class="text-lg text-gray-700 italic font-medium" id="wordExample">"..."</p>
+         </div>
+         <p id="wordNote" class="text-sm text-gray-500 mt-4"></p>
+        </div>
+       </div>
+      </div>
+      <div class="flex gap-4 mt-8"><button onclick="previousWord()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-colors"> ← Trước </button> <button onclick="markAsLearned()" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors"> ✓ Đã nhớ </button> <button onclick="nextWord()" class="flex-1 btn-pink text-white py-3 rounded-xl font-semibold"> Tiếp → </button>
+      </div>
+     </div>
+    </section>
+<section id="games" class="hidden">
+     <div class="bg-white rounded-2xl p-8 shadow-lg max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold gradient-text mb-6 text-center">🎮 Game ôn tập</h2>
+      
+      <div id="gameMenu" class="grid md:grid-cols-3 gap-6 mb-8">
+        <button onclick="playMatching()" class="card-3d bg-gradient-to-br from-pink-50 to-white p-6 rounded-xl border-2 border-pink-200 cursor-pointer hover:shadow-xl transition-all">
+            <div class="text-4xl mb-3 text-center">🎴</div>
+            <h3 class="font-bold text-lg text-center mb-2 text-pink-600">Nối Từ (Matching)</h3>
+            <p class="text-sm text-gray-600 text-center">Ghép từ vựng với nghĩa</p>
+        </button> 
+        <button onclick="playWordHunt()" class="card-3d bg-gradient-to-br from-green-50 to-white p-6 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-xl transition-all">
+            <div class="text-4xl mb-3 text-center">🔍</div>
+            <h3 class="font-bold text-lg text-center mb-2 text-green-600">Tìm Từ (Word Hunt)</h3>
+            <p class="text-sm text-gray-600 text-center">Tìm từ ẩn trong ô chữ</p>
+        </button> 
+        <button onclick="playSpeedMatch()" class="card-3d bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border-2 border-blue-200 cursor-pointer hover:shadow-xl transition-all">
+            <div class="text-4xl mb-3 text-center">⚡</div>
+            <h3 class="font-bold text-lg text-center mb-2 text-blue-600">Phản Xạ (Speed)</h3>
+            <p class="text-sm text-gray-600 text-center">Đúng/Sai trong 3 giây</p>
+        </button>
+      </div>
+
+      <div id="gamePlayArea"></div>
+     </div>
+    </section>
+
+<section id="test" class="hidden">
+     <div class="bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
+      <div class="text-center mb-8">
+          <h2 class="text-3xl font-bold gradient-text mb-2">✅ Kiểm tra năng lực</h2>
+          <p class="text-gray-500">20 câu hỏi trắc nghiệm • Giải thích chi tiết</p>
+      </div>
+      
+      <div id="testLoading" class="hidden text-center py-12">
+          <div class="text-6xl mb-4 animate-bounce">📝</div>
+          <h3 class="text-xl font-bold text-pink-600 mb-2">AI đang soạn đề thi...</h3>
+          <p class="text-gray-500">Đang phân tích bộ từ vựng và tạo tình huống (khoảng 10-15s)</p>
+      </div>
+
+      <div id="testQuiz" class="hidden">
+       <div class="sticky top-0 bg-white z-10 py-4 border-b mb-6 shadow-sm">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-gray-700">Tiến độ làm bài</span>
+            <span id="testScoreDisplay" class="font-bold text-pink-600 hidden">0/20</span>
+        </div>
+        <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+         <div id="testProgress" class="h-full bg-pink-500 transition-all duration-500" style="width: 0%"></div>
+        </div>
+       </div>
+
+       <div id="testQuestions" class="space-y-8"></div>
+       
+       <div class="mt-8 pt-6 border-t">
+           <button id="testSubmit" onclick="submitTest()" class="w-full btn-pink text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all"> 
+               🚀 NỘP BÀI & XEM GIẢI THÍCH 
+           </button>
+           <button id="testRetry" onclick="initTestSection()" class="hidden w-full bg-gray-200 text-gray-700 py-4 rounded-2xl font-bold text-xl hover:bg-gray-300 transition-all"> 
+               🔄 Làm đề khác 
+           </button>
+       </div>
+      </div>
+
+      <div id="testResult" class="hidden text-center py-8">
+       <div class="text-7xl mb-4">🏆</div>
+       <h3 class="text-3xl font-bold gradient-text mb-4">Kết quả của bạn</h3>
+       <div class="bg-pink-50 p-8 rounded-2xl border-2 border-pink-100 inline-block mb-8">
+        <p class="text-lg text-gray-600 mb-2">Tổng điểm</p>
+        <p class="text-5xl font-extrabold text-pink-600"><span id="testFinalScore">0</span><span class="text-2xl text-gray-400">/20</span></p>
+       </div>
+       <p id="testFeedback" class="text-xl text-gray-700 font-medium italic">...</p>
+      </div>
+     </div>
+    </section>
+   </main>
+  </div>
+
+<script>
+    const API_BASE = "http://localhost:5000/api";
+    let token = localStorage.getItem("token");
+    let currentBatchId = 'latest'; 
+
+    function getHeaders() {
+        const t = localStorage.getItem("token");
+        const headers = { "Content-Type": "application/json" };
+        if (t) headers.Authorization = `Bearer ${t}`;
+        return headers;
+    }
+
+// --- HÀM ĐIỀU HƯỚNG (BỊ THIẾU) ---
+    function showSection(id) {
+        // Ẩn tất cả các section
+        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        
+        // Hiện section được chọn
+        const el = document.getElementById(id);
+        if(el) {
+            el.classList.remove('hidden');
+        } else {
+            console.error(`Không tìm thấy section có id="${id}"`);
+        }
+    }
+// --- HÀM ĐIỀU HƯỚNG ---
+    function showSection(id) {
+        // Ẩn tất cả các section
+        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        
+        // Hiện section được chọn
+        const el = document.getElementById(id);
+        if(el) {
+            el.classList.remove('hidden');
+        } else {
+            console.error(`Không tìm thấy section có id="${id}"`);
+        }
+    }
+
+    // [BỔ SUNG] Hàm này đang bị thiếu gây ra lỗi
+    function checkDataAndShow(sectionId) {
+        showSection(sectionId);
+        
+        // Nếu bấm vào Học từ thì gọi hàm khởi tạo học
+        if(sectionId === 'learning') {
+            initLearning(); // Mặc định load bộ mới nhất hoặc bộ đang chọn
+        }
+        
+        // Nếu bấm vào Game thì gọi hàm khởi tạo game
+        if(sectionId === 'games') {
+            initGames();
+        }
+    }
+    
+    // State quản lý dữ liệu
+    let vocabList = [];
+    let vocabIndex = 0;
+    let currentTestQuestions = [];
+    let currentTestQs = [];
+    let aiCamera = null;
+    let activeTestIndex = 0;
+    let hardWords = new Set();
+
+    async function ensureTestAICamera() {
+        const statusEl = document.getElementById('aiStatus');
+        const container = document.getElementById('aiCameraContainer');
+
+        if (!aiCamera) {
+            aiCamera = new AICamera('aiVideo', (state, emotion, score) => {
+                if (state === 'struggling') registerStruggle(emotion, score);
+            });
+        }
+
+        if (!aiCamera.isRunning) {
+            await aiCamera.start();
+            if (statusEl) statusEl.innerText = "ON";
+            if (container) container.classList.remove('hidden');
+        }
+    }
+
+    function toggleAICamera() {
+        const statusEl = document.getElementById('aiStatus');
+        const container = document.getElementById('aiCameraContainer');
+
+        if (!aiCamera) {
+            aiCamera = new AICamera('aiVideo', (state, emotion, score) => {
+                if (state === 'struggling') registerStruggle(emotion, score);
+            });
+        }
+
+        if (aiCamera.isRunning) {
+            aiCamera.stop();
+            if (statusEl) statusEl.innerText = "OFF";
+            if (container) container.classList.add('hidden');
+        } else {
+            aiCamera.start();
+            if (statusEl) statusEl.innerText = "ON";
+            if (container) container.classList.remove('hidden');
+        }
+    }
+
+    function setActiveTestIndex(i) {
+        activeTestIndex = i;
+        if (aiCamera?.resetStruggle) aiCamera.resetStruggle();
+    }
+
+    function getHardWordFromQuestion(q) {
+        return q?.targetWord || q?.word || q?.correctAnswer || null;
+    }
+
+    function registerStruggle(emotion, score) {
+        const q = currentTestQs[activeTestIndex];
+        const hardWord = getHardWordFromQuestion(q);
+        if (!hardWord) return;
+
+        hardWords.add(hardWord);
+        const card = document.getElementById(`q-card-${activeTestIndex}`);
+        if (card) card.style.border = "2px solid orange";
+
+        console.log(`📝 Đã ghi lại từ khó: ${hardWord} (Do biểu hiện ${emotion}, ${score?.toFixed?.(2) ?? score})`);
+    }
+
+    async function sendHardWords(reason = "test-submit") {
+        if (!hardWords.size) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/vocab/hard-words`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({
+                    batchId: currentBatchId,
+                    hardWords: Array.from(hardWords),
+                    reason
+                })
+            });
+            if (res.ok) hardWords.clear();
+        } catch (e) {
+            console.error("Lỗi gửi hardWords:", e);
+        }
+    }
+
+    // --- MAIN FLOW (LUỒNG CHÍNH) ---
+    window.onload = async function() {
+        if (!token) { window.location.href = 'trangdangnhap.html'; return; }
+        
+        try {
+            // Kiểm tra trạng thái User xem đang ở bước nào
+            const res = await fetch(`${API_BASE}/placement/status`, { headers: getHeaders() });
+            const status = await res.json();
+            
+            if (!status.hasFinishedTest) {
+                // 1. Chưa Test -> Vào làm Placement Test
+                showSection('assessment');
+            } else if (!status.hasProfile) {
+                // 2. Test rồi nhưng chưa điền Form -> Hiện Form
+                showSection('assessment');
+                document.getElementById('assessmentIntro').classList.add('hidden');
+                document.getElementById('assessmentResult').classList.remove('hidden');
+                document.getElementById('preferenceForm').classList.remove('hidden');
+                if(status.level) document.getElementById('finalLevel').innerText = status.level;
+            } else {
+                // 3. Xong hết -> Vào Menu chính
+                showSection('menu');
+                loadBatches(); // Load danh sách các bộ từ đã học
+            }
+        } catch(e) { console.error("Lỗi tải trạng thái:", e); }
+    };
+
+    // --- 1. PLACEMENT TEST (30 CÂU) ---
+    let assessmentId = null;
+    async function startPlacement() {
+        document.getElementById('assessmentIntro').classList.add('hidden');
+        document.getElementById('assessmentQuiz').classList.remove('hidden');
+        
+        const res = await fetch(`${API_BASE}/placement/start`, { method: "POST", headers: getHeaders() });
+        const data = await res.json();
+        assessmentId = data.assessmentId;
+        renderQuestion(data.question);
+    }
+
+    function renderQuestion(q) {
+        document.getElementById('assessmentQuestion').innerHTML = `
+            <h3 class="text-xl font-bold mb-6 text-gray-800">${q.content}</h3>
+            <div class="grid gap-3">
+                ${q.options.map(opt => `
+                    <button onclick="submitAns('${opt}')" 
+                    class="p-4 border-2 border-gray-100 rounded-xl hover:border-pink-500 hover:bg-pink-50 text-left transition-all font-medium text-gray-700">
+                    ${opt}
+                    </button>
+                `).join('')}
+            </div>
+        `;
+        document.getElementById('assessmentScore').innerText = `Câu ${q.current}/${q.total}`;
+        document.getElementById('assessmentProgress').style.width = `${(q.current/q.total)*100}%`;
+    }
+
+    async function submitAns(ans) {
+        const res = await fetch(`${API_BASE}/placement/next`, { 
+            method: "POST", headers: getHeaders(), body: JSON.stringify({ assessmentId, answer: ans }) 
+        });
+        const data = await res.json();
+        
+        if (data.done) {
+            // Hoàn thành Test -> Hiện kết quả & Form
+            document.getElementById('assessmentQuiz').classList.add('hidden');
+            document.getElementById('assessmentResult').classList.remove('hidden');
+            document.getElementById('finalLevel').innerText = data.finalLevel;
+            document.getElementById('preferenceForm').classList.remove('hidden');
+        } else {
+            renderQuestion(data.question);
+        }
+    }
+
+    // --- 2. ONBOARDING (FORM -> TẠO BATCH 1) ---
+    async function submitPreferences() {
+        // SỬA DÒNG NÀY: Gọi đúng ID của nút vừa đặt
+        const btn = document.getElementById('btnGenerate'); 
+        
+        // Thêm kiểm tra để tránh lỗi nếu không tìm thấy nút
+        if (btn) {
+            btn.innerText = "⏳ AI đang tạo lộ trình & từ vựng...";
+            btn.disabled = true;
+        }
+
+        // Lấy dữ liệu từ Form
+        const topicSelect = document.getElementById('topicSelect');
+        const interests = topicSelect ? Array.from(topicSelect.selectedOptions).map(o => o.value) : ["General"];
+        
+        const goalInput = document.querySelector('input[name="goal"]:checked');
+        const goal = goalInput ? goalInput.value : "Communication";
+        
+        try {
+            const res = await fetch(`${API_BASE}/onboarding/survey`, {
+                method: "POST", headers: getHeaders(),
+                body: JSON.stringify({ interests: [interests[0] || "General"], goal })
+            });
+            
+            const data = await res.json();
+
+            if(res.ok) {
+                alert(`Thành công! Đã tạo bộ từ vựng mới (${data.count} từ).`);
+                window.location.reload(); // Reload để vào thẳng Menu
+            } else {
+                alert("Lỗi: " + (data.message || "Không thể lưu form"));
+                if(btn) btn.disabled = false;
+            }
+        } catch(e) { 
+            console.error(e);
+            alert("Lỗi kết nối tới Server."); 
+            if(btn) btn.disabled = false; 
+        }
+    }
+
+    // --- 3. HỌC TỪ VỰNG (LEARNING) ---
+    // 1. Cập nhật hàm loadBatches (Để nó hiện danh sách vào menu)
+    async function loadBatches() {
+        try {
+            const res = await fetch(`${API_BASE}/vocab/batches`, { headers: getHeaders() });
+            const batches = await res.json();
+            
+            const select = document.getElementById('batchSelect');
+            if(select && batches.length > 0) {
+                // Render danh sách bộ từ vào thẻ select
+                select.innerHTML = `<option value="latest">⭐ Bộ từ mới nhất</option>` + 
+                    batches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+                
+                // Giữ trạng thái bộ đang chọn
+                if(currentBatchId) select.value = currentBatchId;
+            }
+        } catch(e) { console.error("Lỗi load batches:", e); }
+    }
+
+    // 2. Thêm hàm changeBatch (Hàm bị thiếu gây ra lỗi)
+    function changeBatch() {
+        const select = document.getElementById('batchSelect');
+        if(select) {
+            // Lấy ID bộ từ vừa chọn và gọi hàm học lại
+            initLearning(select.value);
+        }
+    }
+
+async function initLearning(batchId = 'latest') {
+    currentBatchId = batchId;
+    showSection('learning');
+    
+    // Reset giao diện flashcard
+    document.getElementById('flashcard').classList.remove('hidden', 'flipped');
+    
+    try {
+        // Tải danh sách bộ từ nếu chưa có (để menu hoạt động)
+        const select = document.getElementById('batchSelect');
+        if (select && select.options.length <= 2) await loadBatches();
+
+        const res = await fetch(`${API_BASE}/vocab/learning?batchId=${currentBatchId}`, { headers: getHeaders() });
+        vocabList = await res.json();
+        
+        if (!vocabList || vocabList.length === 0) {
+            alert("Bộ từ này chưa có từ nào. Hãy tạo bộ mới!");
+            return;
+        }
+        vocabIndex = 0;
+        updateFlashcard();
+    } catch (error) { console.error(error); }
+}
+function updateFlashcard() {
+    if (!vocabList[vocabIndex]) return;
+    const item = vocabList[vocabIndex];
+    
+    document.getElementById('wordFront').innerText = item.word;
+    document.getElementById('wordBack').innerText = item.meaning;
+
+    // FIX: Ưu tiên lấy example từ backend trả về
+    const exDisplay = document.getElementById('wordExample');
+    if (exDisplay) {
+        let ex = item.example || item.sentence || item.context;
+        if (ex && ex.trim() !== "") {
+            exDisplay.innerText = `"${ex}"`;
+            exDisplay.classList.remove("text-gray-400");
+        } else {
+            exDisplay.innerText = "(Chưa có ví dụ)";
+            exDisplay.classList.add("text-gray-400");
+        }
+    }
+    
+    // Update tiến độ
+    document.getElementById('learningCurrent').innerText = vocabIndex + 1;
+    document.getElementById('learningTotal').innerText = vocabList.length;
+    document.getElementById('learningProgress').style.width = `${((vocabIndex+1)/vocabList.length)*100}%`;
+    document.getElementById('flashcard').classList.remove('flipped');
+}
+// --- CÁC HÀM ĐIỀU KHIỂN FLASHCARD (BỊ THIẾU) ---
+    function flipCard() {
+        document.getElementById('flashcard').classList.toggle('flipped');
+    }
+
+    function nextWord() {
+        if (vocabIndex < vocabList.length - 1) {
+            vocabIndex++;
+            updateFlashcard();
+        } else {
+            alert("Bạn đã học hết danh sách này!");
+        }
+    }
+
+    function previousWord() {
+        if (vocabIndex > 0) {
+            vocabIndex--;
+            updateFlashcard();
+        }
+    }
+// --- HÀM PHÁT ÂM (TEXT TO SPEECH) ---
+    function playAudio(event) {
+        // 1. Ngăn không cho lật thẻ khi bấm vào loa
+        event.stopPropagation(); 
+
+        // 2. Lấy từ hiện tại
+        if (!vocabList[vocabIndex]) return;
+        const textToRead = vocabList[vocabIndex].word;
+
+        // 3. Gọi API của trình duyệt để đọc
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        utterance.lang = 'en-US'; // Giọng Mỹ (hoặc 'en-GB' nếu thích giọng Anh)
+        utterance.rate = 0.8;     // Tốc độ đọc (0.8 là vừa phải, dễ nghe)
+        utterance.pitch = 1;      // Cao độ bình thường
+        
+        window.speechSynthesis.speak(utterance);
+    }
+   async function markAsLearned() {
+    const item = vocabList[vocabIndex];
+    if (!item) return;
+
+    try {
+        // FIX: URL là /vocab/master và body là vocabId
+        const res = await fetch(`${API_BASE}/vocab/master`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ vocabId: item.id }) 
+        });
+
+        if (res.ok) {
+            // Cập nhật số đếm trên giao diện
+            const countEl = document.getElementById('learnedCount');
+            if(countEl) {
+                let c = parseInt(countEl.innerText.replace(/\D/g,'')) || 0;
+                countEl.innerText = `Đã học: ${c + 1}`;
+            }
+            nextWord(); 
+        } else {
+            alert("Lỗi server khi lưu từ!");
+        }
+    } catch (e) { console.error(e); }
+}
+// --- HÀM TẠO BỘ TỪ MỚI (Dán đoạn này vào cuối thẻ script) ---
+    async function generateNewBatch(btn) {
+        // Hỏi xác nhận
+        if(!confirm("🤖 AI sẽ tạo thêm 15 từ vựng mới cho bạn.\nQuá trình này mất khoảng 10-20 giây.\n\nBạn có muốn tiếp tục?")) return;
+
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Đang tạo...";
+        btn.disabled = true;
+
+        try {
+            const focusWords = Array.from(hardWords);
+            if (focusWords.length) await sendHardWords("new-batch");
+
+            const res = await fetch(`${API_BASE}/vocab/more`, { 
+                method: "POST", 
+                headers: getHeaders(),
+                body: JSON.stringify({ focusWords })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(`✅ Thành công! Đã tạo xong bộ từ mới gồm ${data.count} từ.`);
+                
+                // Tải lại danh sách dropdown
+                await loadBatches(); 
+                
+                // Tự động chuyển sang bộ vừa tạo
+                const select = document.getElementById('batchSelect');
+                if(select && data.batchId) {
+                    select.value = data.batchId; 
+                    changeBatch(); 
+                }
+            } else {
+                alert("⚠️ Lỗi: " + (data.message || "Không tạo được bộ từ."));
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối tới Server AI.");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+// --- LOGIC GAME MỚI (ĐÃ FIX LỖI) ---
+    let currentGameData = null;
+
+    async function initGames() {
+        showSection('games');
+        
+        // Reset giao diện: Hiện menu, ẩn khu vực chơi
+        document.getElementById('gameMenu').classList.remove('hidden');
+        document.getElementById('gamePlayArea').innerHTML = '';
+        
+        const container = document.getElementById('gamePlayArea');
+        container.innerHTML = '<div class="text-center mt-10"><div class="loading-dots text-2xl text-pink-500">🤖 AI đang tải dữ liệu trò chơi...</div></div>';
+
+        try {
+            // Gọi API lấy dữ liệu
+            const res = await fetch(`${API_BASE}/vocab/game?batchId=${currentBatchId}`, { headers: getHeaders() });
+            const data = await res.json();
+            currentGameData = data;
+
+            // Xóa loading sau khi tải xong
+            container.innerHTML = ''; 
+
+            if (!data || (!data.matching && !data.speedMatch)) {
+                alert("Bộ từ này chưa đủ dữ liệu để chơi game. Hãy học thêm từ mới nhé!");
+            }
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<div class="text-center mt-10 text-red-500">Lỗi kết nối Game Server</div>';
+        }
+    }
+
+    // Helper: Quay lại menu game
+    function backToGameMenu() {
+        document.getElementById('gameMenu').classList.remove('hidden');
+        document.getElementById('gamePlayArea').innerHTML = '';
+    }
+
+    // 1. GAME MATCHING
+    function playMatching() {
+        if(!currentGameData?.matching?.length) return alert("Chưa có dữ liệu cho game này.");
+        
+        // Ẩn menu, hiện game
+        document.getElementById('gameMenu').classList.add('hidden');
+        
+        let cards = [];
+        currentGameData.matching.forEach(item => {
+            cards.push({ id: item.id, text: item.term, type: 'term' });
+            cards.push({ id: item.id, text: item.match, type: 'match' });
+        });
+        cards.sort(() => 0.5 - Math.random());
+
+        document.getElementById('gamePlayArea').innerHTML = `
+            <div class="mb-4 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-pink-600">🎴 Nối từ</h3>
+                <button onclick="backToGameMenu()" class="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Thoát</button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                ${cards.map(c => `
+                    <div onclick="handleMatchClick(this, '${c.id}')" 
+                         class="bg-white h-24 flex items-center justify-center p-2 text-center border-2 border-gray-200 rounded-xl cursor-pointer hover:border-pink-400 font-semibold shadow-sm select-none transition-all" 
+                         data-id="${c.id}">
+                        ${c.text}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        window.selectedCard = null;
+        window.matchedCount = 0;
+    }
+
+    window.handleMatchClick = function(el, id) {
+        if (el.classList.contains('bg-green-100') || el === window.selectedCard) return;
+        el.classList.add('border-pink-500', 'bg-pink-50');
+
+        if (!window.selectedCard) {
+            window.selectedCard = el;
+        } else {
+            const prevEl = window.selectedCard;
+            const prevId = prevEl.getAttribute('data-id');
+
+            if (prevId === id) {
+                // Đúng
+                [el, prevEl].forEach(card => {
+                    card.className = "bg-green-100 h-24 flex items-center justify-center p-2 text-center border-2 border-green-500 rounded-xl font-bold text-green-700 opacity-50";
+                });
+                window.matchedCount++;
+                if (window.matchedCount === currentGameData.matching.length) {
+                    setTimeout(() => alert("🎉 Xuất sắc! Bạn đã hoàn thành."), 300);
+                }
+            } else {
+                // Sai
+                setTimeout(() => {
+                    el.classList.remove('border-pink-500', 'bg-pink-50');
+                    prevEl.classList.remove('border-pink-500', 'bg-pink-50');
+                }, 500);
+            }
+            window.selectedCard = null;
+        }
+    }
+
+    // 2. GAME SPEED MATCH
+    function playSpeedMatch() {
+        const questions = currentGameData?.speedMatch;
+        if(!questions?.length) return alert("Chưa có dữ liệu cho game này.");
+
+        document.getElementById('gameMenu').classList.add('hidden');
+        let qIndex = 0;
+        let score = 0;
+
+        function renderQ() {
+            if (qIndex >= questions.length) {
+                document.getElementById('gamePlayArea').innerHTML = `
+                    <div class="text-center mt-10">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">🏁 Kết thúc!</h2>
+                        <p class="text-xl">Điểm số: <span class="text-pink-600 font-bold">${score}/${questions.length}</span></p>
+                        <button onclick="backToGameMenu()" class="mt-6 btn-pink text-white px-6 py-2 rounded-lg">Quay lại Menu</button>
+                    </div>`;
+                return;
+            }
+            const q = questions[qIndex];
+            document.getElementById('gamePlayArea').innerHTML = `
+                <div class="max-w-md mx-auto mt-4 p-6 bg-white rounded-2xl shadow-xl text-center border border-blue-100">
+                    <div class="flex justify-between text-gray-400 mb-4 text-xs">
+                        <span>Câu ${qIndex + 1}/${questions.length}</span>
+                        <button onclick="backToGameMenu()" class="underline">Thoát</button>
+                    </div>
+                    <h3 class="text-4xl font-extrabold text-gray-800 mb-2">${q.word}</h3>
+                    <p class="text-gray-400 mb-6">có nghĩa là</p>
+                    <div class="text-xl font-bold text-blue-600 mb-10 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        "${q.meaning}"
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="checkSpeed(false)" class="bg-red-100 text-red-600 py-4 rounded-xl font-bold hover:bg-red-200 text-xl">SAI ❌</button>
+                        <button onclick="checkSpeed(true)" class="bg-green-100 text-green-600 py-4 rounded-xl font-bold hover:bg-green-200 text-xl">ĐÚNG ✅</button>
+                    </div>
+                </div>`;
+        }
+
+        window.checkSpeed = function(userAnswer) {
+            const isCorrect = questions[qIndex].isCorrect;
+            if (userAnswer === isCorrect) {
+                score++;
+                alert("✅ Chính xác!");
+            } else {
+                alert("❌ Sai rồi!");
+            }
+            qIndex++;
+            renderQ();
+        }
+        renderQ();
+    }
+
+    // 3. GAME WORD HUNT
+    function playWordHunt() {
+        const words = currentGameData?.wordHunt?.words;
+        if(!words?.length) return alert("Chưa có dữ liệu cho game này.");
+
+        document.getElementById('gameMenu').classList.add('hidden');
+        
+        // Tạo grid giả lập (trong thực tế cần thuật toán xếp chữ phức tạp hơn)
+        const gridSize = 10;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
+        
+        // Đặt từ vào grid (ngang)
+        words.forEach((w, i) => { 
+            if(i < gridSize) {
+                for(let j=0; j<w.length && j < gridSize; j++) {
+                    grid[i][j] = w[j];
+                }
+            }
+        });
+        
+        // Điền ký tự ngẫu nhiên vào chỗ trống
+        for(let r=0; r<gridSize; r++) {
+            for(let c=0; c<gridSize; c++) {
+                if(grid[r][c] === '') grid[r][c] = letters[Math.floor(Math.random() * letters.length)];
+            }
+        }
+
+        document.getElementById('gamePlayArea').innerHTML = `
+            <div class="max-w-4xl mx-auto p-4 flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-green-600">🔍 Tìm các từ sau:</h2>
+                    <button onclick="backToGameMenu()" class="text-sm underline text-gray-500">Thoát</button>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-4 justify-center">
+                    ${words.map(w => `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-bold">${w}</span>`).join('')}
+                </div>
+                <div class="grid grid-cols-10 gap-1 bg-gray-100 p-2 rounded-lg select-none shadow-inner">
+                    ${grid.flat().map(c => `
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-white flex items-center justify-center font-bold text-gray-700 cursor-pointer hover:bg-green-200 rounded" 
+                             onclick="this.classList.toggle('bg-green-500'); this.classList.toggle('text-white')">
+                            ${c}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+    }
+// ==========================================
+// --- LOGIC KIỂM TRA (TEST SECTION) ---
+
+    async function initTestSection() {
+        showSection('test');
+        hardWords.clear();
+        activeTestIndex = 0;
+        if (aiCamera?.resetStruggle) aiCamera.resetStruggle();
+        await ensureTestAICamera();
+        
+        // Reset giao diện về trạng thái ban đầu
+        document.getElementById('testLoading').classList.remove('hidden');
+        document.getElementById('testQuiz').classList.add('hidden');
+        document.getElementById('testResult').classList.add('hidden');
+        document.getElementById('testSubmit').classList.remove('hidden');
+        document.getElementById('testRetry').classList.add('hidden');
+        document.getElementById('testScoreDisplay').classList.add('hidden');
+        
+        try {
+            // Gọi API lấy câu hỏi
+            const res = await fetch(`${API_BASE}/vocab/test?batchId=${currentBatchId}`, { headers: getHeaders() });
+            const data = await res.json();
+            
+            document.getElementById('testLoading').classList.add('hidden');
+
+            if (data.questions && data.questions.length > 0) {
+                currentTestQs = data.questions;
+                renderTest(); // Vẽ câu hỏi ra màn hình
+                document.getElementById('testQuiz').classList.remove('hidden');
+            } else {
+                document.getElementById('testQuestions').innerHTML = `
+                    <div class="text-center py-10 text-red-500">
+                        <p class="text-xl font-bold">⚠️ Chưa đủ dữ liệu</p>
+                        <p class="mt-2">Bạn cần học ít nhất 5 từ vựng để tạo bài kiểm tra.</p>
+                        <button onclick="checkDataAndShow('learning')" class="mt-6 text-pink-600 underline font-bold">Đi học từ ngay</button>
+                    </div>`;
+                document.getElementById('testQuiz').classList.remove('hidden');
+                document.getElementById('testSubmit').classList.add('hidden');
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('testLoading').classList.add('hidden');
+            alert("Lỗi kết nối AI server. Vui lòng thử lại sau.");
+        }
+    }
+
+    function renderTest() {
+        const container = document.getElementById('testQuestions');
+        container.innerHTML = currentTestQs.map((q, idx) => `
+            <div class="question-card bg-gray-50 p-6 rounded-2xl border border-gray-200 transition-all hover:shadow-md" id="q-card-${idx}" onclick="setActiveTestIndex(${idx})">
+                <div class="flex items-start gap-3 mb-4">
+                    <span class="bg-pink-100 text-pink-600 font-bold px-3 py-1 rounded-lg text-sm whitespace-nowrap">Câu ${idx+1}</span>
+                    <p class="font-bold text-lg text-gray-800 leading-relaxed pt-1">${q.question}</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="group-${idx}">
+                    ${q.options.map(opt => `
+                        <label class="option-label flex items-center p-4 border-2 border-white bg-white rounded-xl cursor-pointer hover:border-pink-200 shadow-sm transition-all group">
+                            <input type="radio" name="q${idx}" value="${opt}" class="w-5 h-5 text-pink-600 accent-pink-500 mr-3" onchange="setActiveTestIndex(${idx}); updateTestProgress()">
+                            <span class="font-medium text-gray-600 group-hover:text-gray-900">${opt}</span>
+                        </label>
+                    `).join('')}
+                </div>
+
+                <div id="explain-${idx}" class="hidden mt-6 pt-6 border-t border-gray-200 animation-fade-in">
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 text-sm">
+                        <p class="text-green-700 font-bold text-base mb-2">✅ Đáp án đúng: ${q.correctAnswer}</p>
+                        <p class="text-gray-700 mb-4"><span class="font-bold">💡 Giải thích:</span> ${q.explanation || "Chưa có giải thích chi tiết."}</p>
+                        
+                        <div class="bg-white p-3 rounded-lg border border-blue-100">
+                            <p class="font-bold text-gray-500 mb-2 text-xs uppercase tracking-wider">Từ vựng trong câu:</p>
+                            <ul class="space-y-1">
+                                ${Object.entries(q.meanings || {}).map(([key, val]) => 
+                                    `<li class="flex justify-between border-b border-gray-100 pb-1 last:border-0">
+                                        <span class="font-semibold text-gray-800">${key}</span>
+                                        <span class="text-gray-500">${val}</span>
+                                    </li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('testProgress').style.width = '0%';
+        setActiveTestIndex(0);
+    }
+
+    function updateTestProgress() {
+        const total = currentTestQs.length;
+        const answered = document.querySelectorAll('#testQuestions input[type="radio"]:checked').length;
+        document.getElementById('testProgress').style.width = `${(answered/total)*100}%`;
+    }
+
+    function submitTest() {
+        // Kiểm tra xem đã làm hết chưa
+        const answered = document.querySelectorAll('#testQuestions input[type="radio"]:checked').length;
+        if (answered < currentTestQs.length) {
+            if(!confirm(`Bạn mới làm ${answered}/${currentTestQs.length} câu. Bạn có chắc muốn nộp bài không?`)) return;
+        }
+
+        let score = 0;
+        
+        currentTestQs.forEach((q, idx) => {
+            const selectedInput = document.querySelector(`input[name="q${idx}"]:checked`);
+            const userAns = selectedInput ? selectedInput.value : null;
+            const explainDiv = document.getElementById(`explain-${idx}`);
+            const group = document.getElementById(`group-${idx}`);
+
+            // 1. Khóa không cho chọn lại
+            group.querySelectorAll('input').forEach(i => i.disabled = true);
+            group.querySelectorAll('label').forEach(l => l.classList.add('cursor-default'));
+
+            // 2. Chấm điểm
+            let isCorrect = false;
+            if (userAns === q.correctAnswer) {
+                score++;
+                isCorrect = true;
+            }
+
+            // 3. Tô màu đáp án
+            group.querySelectorAll('label').forEach(label => {
+                const input = label.querySelector('input');
+                const val = input.value;
+
+                // Reset style cũ
+                label.classList.remove('bg-white', 'border-white', 'hover:border-pink-200');
+
+                if (val === q.correctAnswer) {
+                    // Đáp án ĐÚNG -> Xanh lá
+                    label.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                    label.innerHTML += ' <span class="ml-auto text-xl font-bold">✅</span>';
+                } else if (val === userAns && !isCorrect) {
+                    // Đáp án SAI người dùng chọn -> Đỏ
+                    label.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                    label.innerHTML += ' <span class="ml-auto text-xl font-bold">❌</span>';
+                } else {
+                    // Các đáp án còn lại -> Mờ đi
+                    label.classList.add('bg-gray-50', 'border-transparent', 'opacity-50');
+                }
+            });
+
+            // 4. Hiện giải thích
+            explainDiv.classList.remove('hidden');
+        });
+
+        // 5. Hiển thị kết quả tổng
+        document.getElementById('testSubmit').classList.add('hidden');
+        document.getElementById('testRetry').classList.remove('hidden');
+        document.getElementById('testResult').classList.remove('hidden');
+        document.getElementById('testScoreDisplay').classList.remove('hidden');
+        
+        document.getElementById('testFinalScore').innerText = score;
+        document.getElementById('testScoreDisplay').innerText = `Điểm: ${score}/${currentTestQs.length}`;
+
+        // Feedback
+        const percent = (score / currentTestQs.length);
+        const fb = document.getElementById('testFeedback');
+        if (percent === 1) fb.innerText = "🌟 Xuất sắc! Bạn đã làm chủ hoàn toàn các từ vựng này.";
+        else if (percent >= 0.8) fb.innerText = "🔥 Rất tốt! Chỉ còn một vài lỗi nhỏ thôi.";
+        else if (percent >= 0.5) fb.innerText = "👍 Khá ổn! Hãy xem kỹ phần giải thích các câu sai nhé.";
+        else fb.innerText = "💪 Cần cố gắng hơn! Hãy ôn tập lại bộ từ vựng này.";
+
+        // Cuộn màn hình đến phần kết quả
+        document.getElementById('testResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        sendHardWords("test-submit");
+    }
+</script>
+<div id="aiCameraContainer" class="fixed bottom-4 right-4 z-50 hidden transition-all">
+    <div class="relative w-32 h-24 border-2 border-blue-400 rounded-xl overflow-hidden shadow-lg bg-black">
+        <video id="aiVideo" width="320" height="240" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
+        <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] px-1">AI ON</div>
+    </div>
+</div>
+
+<script src="/_sdk/face-api.min.js"></script> <script src="/_sdk/ai_camera.js"></script>
+ </body>
+</html>

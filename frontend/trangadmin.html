@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-full bg-gray-50">
+  <header class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <p class="text-sm text-gray-500">Quản lý dữ liệu English Blossom</p>
+        <h1 class="text-2xl font-bold text-pink-600">Admin Dashboard</h1>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnRefresh" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold shadow">Làm mới</button>
+        <span id="lastUpdated" class="text-xs text-gray-500 self-center"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-4">
+    <div id="banner" class="hidden px-4 py-3 rounded-lg text-sm"></div>
+
+    <section class="grid md:grid-cols-4 gap-4">
+      <div id="cardRequests" class="bg-white rounded-xl shadow p-4 border border-pink-100 cursor-pointer">
+        <p class="text-sm text-gray-500">Yêu cầu tư vấn</p>
+        <p id="statRequests" class="text-3xl font-bold text-pink-600 mt-2">0</p>
+      </div>
+      <div id="cardUsers" class="bg-white rounded-xl shadow p-4 border border-pink-100 cursor-pointer">
+        <p class="text-sm text-gray-500">Người dùng</p>
+        <p id="statUsers" class="text-3xl font-bold text-pink-600 mt-2">0</p>
+      </div>
+      <div id="cardInprogress" class="bg-white rounded-xl shadow p-4 border border-pink-100 cursor-pointer">
+        <p class="text-sm text-gray-500">Đang xử lý</p>
+        <p id="statInprogress" class="text-3xl font-bold text-pink-600 mt-2">0</p>
+      </div>
+      <div id="cardDone" class="bg-white rounded-xl shadow p-4 border border-pink-100 cursor-pointer">
+        <p class="text-sm text-gray-500">Đã hoàn thành</p>
+        <p id="statDone" class="text-3xl font-bold text-pink-600 mt-2">0</p>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow p-4 border border-pink-50">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="detailTitle" class="text-lg font-semibold text-gray-800">Chi tiết</h2>
+        <div class="text-xs text-gray-500 flex gap-2">
+          <span>API:</span>
+          <code id="apiBaseLabel" class="bg-gray-100 px-2 py-1 rounded"></code>
+        </div>
+      </div>
+      <div class="overflow-auto">
+        <table class="min-w-full text-sm">
+          <thead id="detailHead" class="bg-gray-100 text-gray-700"></thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = "http://localhost:5000";
+    document.getElementById('apiBaseLabel').textContent = API_BASE;
+
+    let requestsCache = [];
+    let usersCache = [];
+    let currentTab = "requests"; // requests | users | inprogress | done
+
+    const banner = document.getElementById('banner');
+    function showBanner(msg, type = "info") {
+      banner.className = "px-4 py-3 rounded-lg text-sm";
+      if (type === "error") banner.classList.add("bg-red-100", "text-red-700");
+      else if (type === "warn") banner.classList.add("bg-yellow-100", "text-yellow-700");
+      else banner.classList.add("bg-green-100", "text-green-700");
+      banner.textContent = msg;
+      banner.classList.remove("hidden");
+    }
+
+    function renderStats() {
+      const inprog = requestsCache.filter(r => r.status === "inprogress").length;
+      const done = requestsCache.filter(r => r.status === "done").length;
+      document.getElementById('statRequests').textContent = requestsCache.length;
+      document.getElementById('statUsers').textContent = usersCache.length;
+      document.getElementById('statInprogress').textContent = inprog;
+      document.getElementById('statDone').textContent = done;
+      document.getElementById('lastUpdated').textContent = "Cập nhật: " + new Date().toLocaleTimeString();
+    }
+
+    function renderDetail() {
+      const head = document.getElementById('detailHead');
+      const body = document.getElementById('detailBody');
+      body.innerHTML = "";
+
+      if (currentTab === "users") {
+        document.getElementById('detailTitle').textContent = "Người dùng";
+        head.innerHTML = `<tr>
+          <th class="px-3 py-2 text-left">Email</th>
+          <th class="px-3 py-2 text-left">Tên</th>
+          <th class="px-3 py-2 text-left">Level</th>
+          <th class="px-3 py-2 text-left">Tạo lúc</th>
+        </tr>`;
+        if (!usersCache.length) {
+          body.innerHTML = `<tr><td class="px-3 py-3 text-gray-500" colspan="4">Chưa có dữ liệu</td></tr>`;
+          return;
+        }
+        usersCache.forEach(u => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="px-3 py-2 font-semibold">${u.email}</td>
+            <td class="px-3 py-2">${u.profile?.fullName || "-"}</td>
+            <td class="px-3 py-2">${u.profile?.levelCefr || "-"}</td>
+            <td class="px-3 py-2 text-gray-500">${new Date(u.createdAt).toLocaleString()}</td>
+          `;
+          body.appendChild(tr);
+        });
+        return;
+      }
+
+      let list = requestsCache;
+      if (currentTab === "inprogress") list = list.filter(r => r.status === "inprogress");
+      if (currentTab === "done") list = list.filter(r => r.status === "done");
+
+      document.getElementById('detailTitle').textContent =
+        currentTab === "inprogress" ? "Yêu cầu đang xử lý" :
+        currentTab === "done" ? "Yêu cầu đã hoàn thành" : "Yêu cầu tư vấn";
+
+      head.innerHTML = `<tr>
+        <th class="px-3 py-2 text-left">Loại</th>
+        <th class="px-3 py-2 text-left">Tên</th>
+        <th class="px-3 py-2 text-left">Liên hệ</th>
+        <th class="px-3 py-2 text-left">Ghi chú</th>
+        <th class="px-3 py-2 text-left">Thời gian</th>
+        <th class="px-3 py-2 text-left">Trạng thái</th>
+      </tr>`;
+
+      if (!list.length) {
+        body.innerHTML = `<tr><td class="px-3 py-3 text-gray-500" colspan="6">Chưa có dữ liệu</td></tr>`;
+        return;
+      }
+
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="px-3 py-2 font-semibold">${item.type || "-"}</td>
+          <td class="px-3 py-2">${item.name || "-"}</td>
+          <td class="px-3 py-2 text-gray-700">${item.email || ""}<br>${item.phone || ""}</td>
+          <td class="px-3 py-2 text-gray-700">${item.message || item.level || item.timeslot || "-"}</td>
+          <td class="px-3 py-2 text-gray-500">${new Date(item.createdAt).toLocaleString()}</td>
+          <td class="px-3 py-2">
+            <select data-id="${item.id}" class="border rounded px-2 py-1 text-sm">
+              <option value="new" ${item.status === 'new' ? 'selected' : ''}>Mới</option>
+              <option value="inprogress" ${item.status === 'inprogress' ? 'selected' : ''}>Đang xử lý</option>
+              <option value="done" ${item.status === 'done' ? 'selected' : ''}>Hoàn tất</option>
+            </select>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+
+      body.querySelectorAll('select[data-id]').forEach(sel => {
+        sel.onchange = async (e) => {
+          const id = e.target.dataset.id;
+          const status = e.target.value;
+          try {
+            await fetch(`${API_BASE}/api/admin/requests/${id}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+              },
+              body: JSON.stringify({ status }),
+            });
+            await loadData();
+          } catch {
+            showBanner("Cập nhật trạng thái thất bại (cần token / backend)", "error");
+          }
+        };
+      });
+    }
+
+    async function loadData() {
+      try {
+        const [reqRes, userRes] = await Promise.all([
+          fetch(`${API_BASE}/api/public/requests`),
+          fetch(`${API_BASE}/api/public/users`),
+        ]);
+        requestsCache = reqRes.ok ? await reqRes.json() : [];
+        usersCache = userRes.ok ? await userRes.json() : [];
+        renderStats();
+        renderDetail();
+        showBanner("Đã tải dữ liệu", "info");
+      } catch {
+        showBanner("Không tải được dữ liệu (kiểm tra backend)", "error");
+      }
+    }
+
+    document.getElementById('btnRefresh').addEventListener('click', loadData);
+    document.getElementById('cardRequests').addEventListener('click', () => { currentTab = "requests"; renderDetail(); });
+    document.getElementById('cardUsers').addEventListener('click', () => { currentTab = "users"; renderDetail(); });
+    document.getElementById('cardInprogress').addEventListener('click', () => { currentTab = "inprogress"; renderDetail(); });
+    document.getElementById('cardDone').addEventListener('click', () => { currentTab = "done"; renderDetail(); });
+
+    setInterval(loadData, 8000); // realtime-ish
+    loadData();
+  </script>
+</body>
+</html>
+
+
+

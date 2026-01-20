@@ -1,0 +1,1162 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About English Blossom</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+    
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #fce7f3 0%, #ffffff 50%, #fff1f2 100%);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-section {
+      position: relative;
+      overflow: hidden;
+      min-height: 500px;
+      display: flex;
+      align-items: center;
+      padding: 4rem 1rem;
+    }
+    
+    .floating-emoji {
+      position: absolute;
+      font-size: 3rem;
+      animation: float 3s ease-in-out infinite;
+      opacity: 0.3;
+    }
+    
+    .feature-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      transition: all 0.4s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2);
+    }
+    
+    .feature-card:hover::before {
+      opacity: 0.05;
+    }
+    
+    .feature-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+      transition: transform 0.4s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+      transform: scale(1.2) rotate(5deg);
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .stat-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 30px rgba(236, 72, 153, 0.15);
+    }
+    
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    
+    .timeline-item {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      position: relative;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -30px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px white, 0 0 0 8px #fce7f3;
+    }
+    
+    .timeline-item:hover {
+      transform: translateX(10px);
+      box-shadow: 0 10px 25px rgba(236, 72, 153, 0.15);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+      color: white;
+      padding: 1rem 2.5rem;
+      border-radius: 2rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      text-decoration: none;
+      font-size: 1.1rem;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(236, 72, 153, 0.4);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #ec4899;
+      padding: 1rem 2.5rem;
+      border-radius: 2rem;
+      font-weight: 700;
+      border: 2px solid #ec4899;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      text-decoration: none;
+      font-size: 1.1rem;
+    }
+    
+    .btn-secondary:hover {
+      background: #ec4899;
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(236, 72, 153, 0.4);
+    }
+    
+    .accordion-item {
+      background: white;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .accordion-header {
+      padding: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      color: #1f2937;
+      transition: all 0.3s ease;
+    }
+    
+    .accordion-header:hover {
+      background: #fce7f3;
+      color: #ec4899;
+    }
+    
+    .accordion-icon {
+      font-size: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+    
+    .accordion-item.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+    
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+      padding: 0 1.5rem;
+    }
+    
+    .accordion-item.active .accordion-content {
+      max-height: 500px;
+      padding: 0 1.5rem 1.5rem 1.5rem;
+    }
+    
+    .testimonial-card {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .testimonial-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(236, 72, 153, 0.15);
+    }
+    
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 4px solid #ec4899;
+      margin-bottom: 1rem;
+    }
+    
+    .rating {
+      color: #fbbf24;
+      font-size: 1.5rem;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+      animation: fadeInUp 0.3s ease;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+      animation: scaleIn 0.3s ease;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+    
+    .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #f3f4f6;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .close-btn:hover {
+      background: #ec4899;
+      color: white;
+      transform: rotate(90deg);
+    }
+    
+    .scroll-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ec4899 0%, #f472b6 100%);
+      z-index: 9999;
+      transition: width 0.1s ease;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-section {
+        min-height: 400px;
+        padding: 3rem 1rem;
+      }
+      
+      .stat-number {
+        font-size: 2rem;
+      }
+      
+      .feature-icon {
+        font-size: 3rem;
+      }
+      
+      .timeline-item::before {
+        display: none;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full">
+  <div id="scrollIndicator" class="scroll-indicator"></div>
+  <div id="app" class="w-full h-full overflow-auto gradient-bg"><!-- Hero Section -->
+   <section class="hero-section">
+    <div class="floating-emoji" style="top: 10%; left: 10%; animation-delay: 0s;">
+     🌸
+    </div>
+    <div class="floating-emoji" style="top: 20%; right: 15%; animation-delay: 1s;">
+     📚
+    </div>
+    <div class="floating-emoji" style="bottom: 15%; left: 20%; animation-delay: 2s;">
+     ✨
+    </div>
+    <div class="floating-emoji" style="bottom: 25%; right: 10%; animation-delay: 1.5s;">
+     🎯
+    </div>
+    <div class="max-w-6xl mx-auto text-center relative z-10">
+     <div style="animation: fadeInUp 0.8s ease forwards;">
+      <h1 id="heroTitle" class="text-5xl md:text-7xl font-black gradient-text mb-6">English Blossom</h1>
+      <p id="heroSubtitle" class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">🌸 Nơi Tiếng Anh Nở Hoa 🌸</p>
+      <p id="heroDescription" class="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto px-4">Khám phá phương pháp học tiếng Anh hiện đại, cá nhân hóa và hiệu quả. Chúng tôi mang đến trải nghiệm học tập đầy cảm hứng với công nghệ AI và đội ngũ giáo viên bản ngữ chuyên nghiệp.</p>
+      <div class="flex flex-wrap gap-4 justify-center px-4"><button onclick="showModal('trial')" class="btn-primary"> 🚀 Dùng thử miễn phí </button> <button onclick="scrollToSection('features')" class="btn-secondary"> 💡 Tìm hiểu thêm </button>
+      </div>
+     </div>
+    </div>
+   </section><!-- Stats Section -->
+   <section class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="stat-card" onclick="animateStatCard(this)">
+       <div class="stat-number" id="stat1Number">
+        10,000+
+       </div>
+       <div class="text-gray-600 font-semibold" id="stat1Label">
+        Học viên
+       </div>
+      </div>
+      <div class="stat-card" onclick="animateStatCard(this)">
+       <div class="stat-number" id="stat2Number">
+        50+
+       </div>
+       <div class="text-gray-600 font-semibold" id="stat2Label">
+        Giáo viên
+       </div>
+      </div>
+      <div class="stat-card" onclick="animateStatCard(this)">
+       <div class="stat-number" id="stat3Number">
+        98%
+       </div>
+       <div class="text-gray-600 font-semibold" id="stat3Label">
+        Hài lòng
+       </div>
+      </div>
+      <div class="stat-card" onclick="animateStatCard(this)">
+       <div class="stat-number" id="stat4Number">
+        24/7
+       </div>
+       <div class="text-gray-600 font-semibold" id="stat4Label">
+        Hỗ trợ
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Features Section -->
+   <section id="features" class="py-16 px-4 bg-white">
+    <div class="max-w-6xl mx-auto">
+     <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">✨ Điểm Nổi Bật</h2>
+      <p class="text-xl text-gray-600">Những lý do khiến English Blossom trở nên đặc biệt</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-8">
+      <div class="feature-card" onclick="showFeatureDetail('personalized')">
+       <div class="feature-icon">
+        🎯
+       </div>
+       <h3 id="feature1Title" class="text-2xl font-bold text-gray-800 mb-3">Học tập cá nhân hóa</h3>
+       <p class="text-gray-600">AI phân tích trình độ và đưa ra lộ trình học tập phù hợp với từng cá nhân, giúp bạn tiến bộ nhanh chóng.</p>
+      </div>
+      <div class="feature-card" onclick="showFeatureDetail('teachers')">
+       <div class="feature-icon">
+        👨‍🏫
+       </div>
+       <h3 id="feature2Title" class="text-2xl font-bold text-gray-800 mb-3">Giáo viên bản ngữ</h3>
+       <p class="text-gray-600">Đội ngũ giáo viên đến từ Mỹ, Anh, Úc với chứng chỉ quốc tế, sẵn sàng hỗ trợ 24/7.</p>
+      </div>
+      <div class="feature-card" onclick="showFeatureDetail('roadmap')">
+       <div class="feature-icon">
+        🗺️
+       </div>
+       <h3 id="feature3Title" class="text-2xl font-bold text-gray-800 mb-3">Lộ trình rõ ràng</h3>
+       <p class="text-gray-600">Từ A1 đến C2, mỗi cấp độ đều có roadmap chi tiết với mục tiêu cụ thể và đo lường được.</p>
+      </div>
+      <div class="feature-card" onclick="showFeatureDetail('interactive')">
+       <div class="feature-icon">
+        🎮
+       </div>
+       <h3 class="text-2xl font-bold text-gray-800 mb-3">Học qua game</h3>
+       <p class="text-gray-600">Gamification giúp việc học trở nên thú vị với điểm số, huy hiệu và bảng xếp hạng.</p>
+      </div>
+      <div class="feature-card" onclick="showFeatureDetail('community')">
+       <div class="feature-icon">
+        👥
+       </div>
+       <h3 class="text-2xl font-bold text-gray-800 mb-3">Cộng đồng sôi động</h3>
+       <p class="text-gray-600">Kết nối với hàng ngàn học viên, tham gia speaking club và sự kiện offline hàng tháng.</p>
+      </div>
+      <div class="feature-card" onclick="showFeatureDetail('certificate')">
+       <div class="feature-icon">
+        🏆
+       </div>
+       <h3 class="text-2xl font-bold text-gray-800 mb-3">Chứng chỉ quốc tế</h3>
+       <p class="text-gray-600">Nhận chứng chỉ được công nhận toàn cầu sau khi hoàn thành mỗi cấp độ.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Timeline Section -->
+   <section class="py-16 px-4">
+    <div class="max-w-4xl mx-auto">
+     <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">🚀 Hành Trình Của Chúng Tôi</h2>
+      <p class="text-xl text-gray-600">Từ ý tưởng đến hiện thực</p>
+     </div>
+     <div class="relative" style="padding-left: 40px;">
+      <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-pink-500 to-pink-300 hidden md:block"></div>
+      <div class="timeline-item" onclick="highlightTimeline(this)">
+       <div class="text-pink-500 font-bold mb-2">
+        2020 - Khởi đầu
+       </div>
+       <h3 class="text-xl font-bold text-gray-800 mb-2">🌱 Ý tưởng ra đời</h3>
+       <p class="text-gray-600">English Blossom được hình thành từ mong muốn mang đến phương pháp học tiếng Anh hiệu quả cho người Việt.</p>
+      </div>
+      <div class="timeline-item" onclick="highlightTimeline(this)">
+       <div class="text-pink-500 font-bold mb-2">
+        2021 - Phát triển
+       </div>
+       <h3 class="text-xl font-bold text-gray-800 mb-2">💻 Ra mắt nền tảng</h3>
+       <p class="text-gray-600">Phiên bản đầu tiên với 1,000 học viên và 10 giáo viên bản ngữ. Tích hợp AI đầu tiên vào hệ thống.</p>
+      </div>
+      <div class="timeline-item" onclick="highlightTimeline(this)">
+       <div class="text-pink-500 font-bold mb-2">
+        2022 - Mở rộng
+       </div>
+       <h3 class="text-xl font-bold text-gray-800 mb-3">📈 Tăng trưởng vượt bậc</h3>
+       <p class="text-gray-600">Đạt 5,000 học viên, mở rộng đội ngũ giáo viên lên 30 người. Ra mắt ứng dụng mobile.</p>
+      </div>
+      <div class="timeline-item" onclick="highlightTimeline(this)">
+       <div class="text-pink-500 font-bold mb-2">
+        2023 - Đột phá
+       </div>
+       <h3 class="text-xl font-bold text-gray-800 mb-2">🏆 Giải thưởng danh giá</h3>
+       <p class="text-gray-600">Nhận giải "EdTech của năm" và đạt 10,000+ học viên. Hợp tác với các trường đại học hàng đầu.</p>
+      </div>
+      <div class="timeline-item" onclick="highlightTimeline(this)">
+       <div class="text-pink-500 font-bold mb-2">
+        2024 - Tương lai
+       </div>
+       <h3 class="text-xl font-bold text-gray-800 mb-2">🌏 Mở rộng quốc tế</h3>
+       <p class="text-gray-600">Ra mắt tại Thái Lan, Indonesia và Philippines. Phát triển tính năng metaverse cho học tập.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- FAQ Section -->
+   <section class="py-16 px-4 bg-white">
+    <div class="max-w-4xl mx-auto">
+     <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">❓ Câu Hỏi Thường Gặp</h2>
+      <p class="text-xl text-gray-600">Nhấn vào câu hỏi để xem câu trả lời</p>
+     </div>
+     <div id="accordionContainer">
+      <div class="accordion-item" onclick="toggleAccordion(this)">
+       <div class="accordion-header"><span>💰 Học phí của English Blossom như thế nào?</span> <span class="accordion-icon">▼</span>
+       </div>
+       <div class="accordion-content">
+        <p class="text-gray-600">Chúng tôi có nhiều gói học phù hợp với túi tiền: Gói Basic (499k/tháng), Gói Premium (899k/tháng) và Gói VIP (1.5tr/tháng). Tất cả đều có 7 ngày dùng thử miễn phí!</p>
+       </div>
+      </div>
+      <div class="accordion-item" onclick="toggleAccordion(this)">
+       <div class="accordion-header"><span>📱 Có ứng dụng mobile không?</span> <span class="accordion-icon">▼</span>
+       </div>
+       <div class="accordion-content">
+        <p class="text-gray-600">Có! English Blossom có ứng dụng trên cả iOS và Android. Bạn có thể học mọi lúc mọi nơi, dữ liệu đồng bộ tự động giữa các thiết bị.</p>
+       </div>
+      </div>
+      <div class="accordion-item" onclick="toggleAccordion(this)">
+       <div class="accordion-header"><span>⏰ Tôi cần học bao lâu để tiến bộ?</span> <span class="accordion-icon">▼</span>
+       </div>
+       <div class="accordion-content">
+        <p class="text-gray-600">Trung bình 3-6 tháng để lên một cấp độ nếu bạn học 30 phút mỗi ngày. Tuy nhiên, tốc độ tiến bộ phụ thuộc vào sự nỗ lực và phương pháp học của mỗi người.</p>
+       </div>
+      </div>
+      <div class="accordion-item" onclick="toggleAccordion(this)">
+       <div class="accordion-header"><span>🎓 Giáo viên có chứng chỉ không?</span> <span class="accordion-icon">▼</span>
+       </div>
+       <div class="accordion-content">
+        <p class="text-gray-600">Tất cả giáo viên đều là người bản ngữ với chứng chỉ TESOL/TEFL/CELTA và ít nhất 2 năm kinh nghiệm giảng dạy. Họ được đào tạo bài bản về phương pháp giảng dạy online hiệu quả.</p>
+       </div>
+      </div>
+      <div class="accordion-item" onclick="toggleAccordion(this)">
+       <div class="accordion-header"><span>🔄 Có thể hủy gói học không?</span> <span class="accordion-icon">▼</span>
+       </div>
+       <div class="accordion-content">
+        <p class="text-gray-600">Bạn có thể hủy bất cứ lúc nào mà không mất phí. Nếu không hài lòng trong 30 ngày đầu, chúng tôi hoàn lại 100% học phí, không hỏi lý do!</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Testimonials Section -->
+   <section class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+     <div class="text-center mb-12">
+      <h2 class="text-4xl md:text-5xl font-black gradient-text mb-4">💬 Học Viên Nói Gì</h2>
+      <p class="text-xl text-gray-600">Nhấn vào để đọc đầy đủ</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-8">
+      <div class="testimonial-card" onclick="showTestimonial('Minh Anh')"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=MinhhAnh" alt="Minh Anh" class="avatar mx-auto">
+       <div class="rating mb-3">
+        ⭐⭐⭐⭐⭐
+       </div>
+       <p class="text-gray-600 mb-4 italic">"Sau 6 tháng học, tôi đã tự tin giao tiếp với khách hàng nước ngoài. Giáo viên nhiệt tình và phương pháp rất hiệu quả!"</p>
+       <p class="font-bold text-gray-800">Minh Anh</p>
+       <p class="text-sm text-gray-500">Marketing Manager</p>
+      </div>
+      <div class="testimonial-card" onclick="showTestimonial('Tuấn Kiệt')"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TuanKiet" alt="Tuấn Kiệt" class="avatar mx-auto">
+       <div class="rating mb-3">
+        ⭐⭐⭐⭐⭐
+       </div>
+       <p class="text-gray-600 mb-4 italic">"IELTS 7.5 sau 4 tháng học! Phần speaking được cải thiện rõ rệt nhờ luyện tập với giáo viên bản ngữ mỗi ngày."</p>
+       <p class="font-bold text-gray-800">Tuấn Kiệt</p>
+       <p class="text-sm text-gray-500">Sinh viên</p>
+      </div>
+      <div class="testimonial-card" onclick="showTestimonial('Phương Linh')"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=PhuongLinh" alt="Phương Linh" class="avatar mx-auto">
+       <div class="rating mb-3">
+        ⭐⭐⭐⭐⭐
+       </div>
+       <p class="text-gray-600 mb-4 italic">"Ứng dụng rất tiện, có thể học lúc nào cũng được. Con tôi 10 tuổi cũng thích học trên này vì có nhiều game vui!"</p>
+       <p class="font-bold text-gray-800">Phương Linh</p>
+       <p class="text-sm text-gray-500">Doanh nhân</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- CTA Section -->
+   <section class="py-20 px-4 bg-white">
+    <div class="max-w-4xl mx-auto text-center">
+     <h2 class="text-4xl md:text-5xl font-black gradient-text mb-6">🎉 Sẵn Sàng Bắt Đầu?</h2>
+     <p class="text-xl text-gray-600 mb-8">Tham gia cùng 10,000+ học viên đang tiến bộ mỗi ngày</p>
+     <div class="flex flex-wrap gap-4 justify-center"><button onclick="showModal('trial')" class="btn-primary"> 🚀 Dùng thử 7 ngày miễn phí </button> <button onclick="showModal('contact')" class="btn-secondary"> 📞 Liên hệ tư vấn </button>
+     </div>
+     <p class="text-sm text-gray-500 mt-6">✓ Không cần thẻ tín dụng &nbsp; ✓ Hủy bất cứ lúc nào &nbsp; ✓ Hoàn tiền 100% trong 30 ngày</p>
+    </div>
+   </section><!-- Footer -->
+   <footer class="bg-gray-900 text-white py-8 px-4">
+    <div class="max-w-6xl mx-auto text-center">
+     <p class="text-2xl mb-4">🌸 English Blossom</p>
+     <p class="text-gray-400 mb-4">Nơi Tiếng Anh Nở Hoa</p>
+     <div class="flex justify-center gap-6 mb-6"><a href="#" class="text-gray-400 hover:text-pink-500 transition-colors">Facebook</a> <a href="#" class="text-gray-400 hover:text-pink-500 transition-colors">Instagram</a> <a href="#" class="text-gray-400 hover:text-pink-500 transition-colors">YouTube</a> <a href="#" class="text-gray-400 hover:text-pink-500 transition-colors">LinkedIn</a>
+     </div>
+     <p class="text-gray-500 text-sm">© 2024 English Blossom. All rights reserved.</p>
+    </div>
+   </footer><!-- Modal -->
+   <div id="modal" class="modal-overlay hidden" onclick="closeModal(event)">
+    <div class="modal-content relative" onclick="event.stopPropagation()"><button class="close-btn" onclick="closeModal()">✕</button>
+     <div id="modalContent"></div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      hero_title: "English Blossom",
+      hero_subtitle: "🌸 Nơi Tiếng Anh Nở Hoa 🌸",
+      hero_description: "Khám phá phương pháp học tiếng Anh hiện đại, cá nhân hóa và hiệu quả. Chúng tôi mang đến trải nghiệm học tập đầy cảm hứng với công nghệ AI và đội ngũ giáo viên bản ngữ chuyên nghiệp.",
+      feature1_title: "Học tập cá nhân hóa",
+      feature2_title: "Giáo viên bản ngữ",
+      feature3_title: "Lộ trình rõ ràng",
+      stat1_number: "10,000+",
+      stat1_label: "Học viên",
+      stat2_number: "50+",
+      stat2_label: "Giáo viên",
+      stat3_number: "98%",
+      stat3_label: "Hài lòng",
+      stat4_number: "24/7",
+      stat4_label: "Hỗ trợ",
+      primary_color: "#ec4899",
+      secondary_color: "#f472b6",
+      accent_color: "#f43f5e",
+      background_color: "#fce7f3",
+      text_color: "#1f2937"
+    };
+
+    // Scroll indicator
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('scrollIndicator').style.width = scrolled + '%';
+    });
+
+    // Smooth scroll
+    function scrollToSection(id) {
+      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Animate stat card
+    function animateStatCard(card) {
+      card.style.animation = 'pulse 0.5s ease';
+      setTimeout(() => {
+        card.style.animation = '';
+      }, 500);
+    }
+
+    // Toggle accordion
+    function toggleAccordion(item) {
+      const allItems = document.querySelectorAll('.accordion-item');
+      allItems.forEach(i => {
+        if (i !== item) {
+          i.classList.remove('active');
+        }
+      });
+      item.classList.toggle('active');
+    }
+
+    // Highlight timeline
+    function highlightTimeline(item) {
+      const allItems = document.querySelectorAll('.timeline-item');
+      allItems.forEach(i => {
+        i.style.background = 'white';
+      });
+      item.style.background = '#fce7f3';
+      setTimeout(() => {
+        item.style.background = 'white';
+      }, 1000);
+    }
+
+    // Show feature detail
+    function showFeatureDetail(feature) {
+      const features = {
+        personalized: {
+          title: '🎯 Học tập cá nhân hóa',
+          content: `
+            <h3 class="text-2xl font-bold mb-4">Trí tuệ nhân tạo phân tích và tối ưu</h3>
+            <ul class="text-left space-y-3 text-gray-600">
+              <li>✓ <strong>Đánh giá trình độ ban đầu:</strong> Bài test 15 phút xác định chính xác level của bạn</li>
+              <li>✓ <strong>Lộ trình cá nhân:</strong> AI tạo roadmap riêng dựa trên mục tiêu và thời gian của bạn</li>
+              <li>✓ <strong>Điều chỉnh linh hoạt:</strong> Hệ thống tự động tăng giảm độ khó theo tiến độ</li>
+              <li>✓ <strong>Ôn tập thông minh:</strong> Spaced repetition giúp nhớ lâu hơn 300%</li>
+            </ul>
+          `
+        },
+        teachers: {
+          title: '👨‍🏫 Giáo viên bản ngữ chất lượng cao',
+          content: `
+            <h3 class="text-2xl font-bold mb-4">Đội ngũ giảng viên xuất sắc</h3>
+            <ul class="text-left space-y-3 text-gray-600">
+              <li>✓ <strong>50+ giáo viên:</strong> Đến từ Mỹ, Anh, Úc, Canada</li>
+              <li>✓ <strong>Chứng chỉ quốc tế:</strong> TESOL, TEFL, CELTA, DELTA</li>
+              <li>✓ <strong>Kinh nghiệm dày dặn:</strong> Trung bình 5+ năm giảng dạy</li>
+              <li>✓ <strong>Hỗ trợ 24/7:</strong> Luôn có giáo viên online để giải đáp</li>
+            </ul>
+          `
+        },
+        roadmap: {
+          title: '🗺️ Lộ trình học tập rõ ràng',
+          content: `
+            <h3 class="text-2xl font-bold mb-4">Từ A1 đến C2 - Từng bước tiến bộ</h3>
+            <ul class="text-left space-y-3 text-gray-600">
+              <li>✓ <strong>6 cấp độ:</strong> A1, A2, B1, B2, C1, C2 theo CEFR</li>
+              <li>✓ <strong>Mục tiêu cụ thể:</strong> Mỗi level có KPI rõ ràng</li>
+              <li>✓ <strong>Kiểm tra định kỳ:</strong> Test sau mỗi 20 bài học</li>
+              <li>✓ <strong>Chứng chỉ:</strong> Nhận certificate khi hoàn thành level</li>
+            </ul>
+          `
+        },
+        interactive: {
+          title: '🎮 Học qua trò chơi',
+          content: `
+            <h3 class="text-2xl font-bold mb-4">Gamification - Học mà vui</h3>
+            <ul class="text-left space-y-3 text-gray-600">
+              <li>✓ <strong>Điểm số & cấp bậc:</strong> Level up như game RPG</li>
+              <li>✓ <strong>Huy hiệu thành tích:</strong> 50+ badges để thu thập</li>
+              <li>✓ <strong>Bảng xếp hạng:</strong> Thi đua với bạn bè</li>
+              <li>✓ <strong>Streak reward:</strong> Học liên tục nhận thưởng</li>
+            </ul>
+          `
+        },
+        community: {
+          title: '👥 Cộng đồng năng động',
+          content: `
+            <h3 class="text-2xl font-bold mb-4">Kết nối và phát triển cùng nhau</h3>
+            <ul class="text-left space-y-3 text-gray-600">
+              <li>✓ <strong>Speaking club:</strong> Gặp gỡ online mỗi tuần</li>
+              <li>✓ <strong>Study groups:</strong> Nhóm học theo sở thích</li>
+              <li>✓ <strong>Sự kiện offline:</strong> Meetup hàng tháng tại HCM, HN</li>
+              <li>✓ <strong>Forum:</strong> Hỏi đáp, chia sẻ kinh nghiệm</li>
+            </ul>
+          `
+        },
+        certificate: {
+          title: '🏆 Chứng chỉ được công nhận',
+          content: `
+            <h3 class="text-2xl font-bold mb-4">Giá trị được thừa nhận toàn cầu</h3>
+            <ul class="text-left space-y-3 text-gray-600">
+              <li>✓ <strong>Chuẩn quốc tế:</strong> Theo khung CEFR của Châu Âu</li>
+              <li>✓ <strong>Được công nhận:</strong> Hơn 500 doanh nghiệp tin dùng</li>
+              <li>✓ <strong>Digital certificate:</strong> Xác thực bằng blockchain</li>
+              <li>✓ <strong>In ấn chất lượng:</strong> Gửi bản cứng miễn phí</li>
+            </ul>
+          `
+        }
+      };
+
+      const feature_data = features[feature];
+      if (feature_data) {
+        document.getElementById('modalContent').innerHTML = `
+          <h2 class="text-3xl font-black gradient-text mb-6">${feature_data.title}</h2>
+          ${feature_data.content}
+          <button onclick="closeModal()" class="btn-primary mt-6 w-full">Đóng</button>
+        `;
+        document.getElementById('modal').classList.remove('hidden');
+      }
+    }
+
+    // Show testimonial
+    function showTestimonial(name) {
+      const testimonials = {
+        'Minh Anh': `
+          <div class="text-center">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=MinhAnh" alt="Minh Anh" class="avatar mx-auto mb-4">
+            <h2 class="text-2xl font-bold mb-2">Minh Anh</h2>
+            <p class="text-gray-500 mb-4">Marketing Manager tại công ty đa quốc gia</p>
+            <div class="rating mb-4">⭐⭐⭐⭐⭐</div>
+            <p class="text-gray-600 text-left mb-4">
+              "Trước khi học English Blossom, tôi rất ngại giao tiếp với khách hàng nước ngoài. Sau 6 tháng học, 
+              tôi đã tự tin present dự án trước board directors người Mỹ. Giáo viên Sarah rất nhiệt tình, 
+              luôn sửa phát âm và ngữ pháp chi tiết. Phương pháp học qua tình huống thực tế giúp tôi áp dụng ngay vào công việc!"
+            </p>
+            <p class="text-sm text-gray-500 italic">
+              "Điều tôi thích nhất là lịch học linh hoạt, có thể học lúc 6h sáng hoặc 11h đêm đều có giáo viên."
+            </p>
+          </div>
+        `,
+        'Tuấn Kiệt': `
+          <div class="text-center">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=TuanKiet" alt="Tuấn Kiệt" class="avatar mx-auto mb-4">
+            <h2 class="text-2xl font-bold mb-2">Tuấn Kiệt</h2>
+            <p class="text-gray-500 mb-4">Sinh viên năm 3 - ĐHKHTN</p>
+            <div class="rating mb-4">⭐⭐⭐⭐⭐</div>
+            <p class="text-gray-600 text-left mb-4">
+              "Mục tiêu của mình là IELTS 7.0 để apply học bổng. Ban đầu mình chỉ được 5.5, nhất là speaking rất yếu. 
+              Sau 4 tháng học với English Blossom, mình thi được 7.5 (Speaking 7.0!). Luyện speaking với giáo viên bản ngữ 
+              mỗi ngày 30 phút, được sửa từng câu, từng từ. AI của app cũng hay, gợi ý từ vựng Academic rất hữu ích!"
+            </p>
+            <p class="text-sm text-gray-500 italic">
+              "Giá 899k/tháng rẻ hơn rất nhiều so với các trung tâm IELTS mà hiệu quả không thua kém!"
+            </p>
+          </div>
+        `,
+        'Phương Linh': `
+          <div class="text-center">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=PhuongLinh" alt="Phương Linh" class="avatar mx-auto mb-4">
+            <h2 class="text-2xl font-bold mb-2">Phương Linh</h2>
+            <p class="text-gray-500 mb-4">Chủ doanh nghiệp & Mẹ của bé 10 tuổi</p>
+            <div class="rating mb-4">⭐⭐⭐⭐⭐</div>
+            <p class="text-gray-600 text-left mb-4">
+              "Ban đầu mình đăng ký để học cho công việc (mở rộng kinh doanh ra nước ngoài). Thấy app vui nên cho con học thử, 
+              không ngờ con nghiện luôn! Bé thích phần game, mỗi ngày tự giác học 30 phút. Giờ bé đọc truyện tiếng Anh 
+              Harry Potter dễ dàng. Còn mình thì email với đối tác Mỹ trôi chảy hơn hẳn."
+            </p>
+            <p class="text-sm text-gray-500 italic">
+              "Mua 1 tài khoản cả nhà dùng chung, tiết kiệm và hiệu quả. Đáng đồng tiền bát gạo!"
+            </p>
+          </div>
+        `
+      };
+
+      document.getElementById('modalContent').innerHTML = testimonials[name];
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    // Show modal
+    function showModal(type) {
+      let content = '';
+      
+      if (type === 'trial') {
+        content = `
+          <h2 class="text-3xl font-black gradient-text mb-6 text-center">🚀 Dùng thử 7 ngày miễn phí</h2>
+          <form onsubmit="handleTrialSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Họ và tên</label>
+              <input type="text" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="Nguyễn Văn A">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <input type="email" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="email@example.com">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại</label>
+              <input type="tel" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="0912345678">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Trình độ hiện tại</label>
+              <select required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors">
+                <option value="">Chọn trình độ</option>
+                <option value="beginner">Mới bắt đầu (A1)</option>
+                <option value="elementary">Sơ cấp (A2)</option>
+                <option value="intermediate">Trung cấp (B1)</option>
+                <option value="upper">Khá (B2)</option>
+                <option value="advanced">Nâng cao (C1-C2)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary w-full">
+              Đăng ký ngay - Miễn phí 100%
+            </button>
+            <p class="text-xs text-gray-500 text-center">
+              ✓ Không cần thẻ tín dụng<br>
+              ✓ Tự động hủy sau 7 ngày nếu không tiếp tục
+            </p>
+          </form>
+        `;
+      } else if (type === 'contact') {
+        content = `
+          <h2 class="text-3xl font-black gradient-text mb-6 text-center">📞 Liên hệ tư vấn</h2>
+          <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Họ và tên</label>
+              <input type="text" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="Nguyễn Văn A">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại</label>
+              <input type="tel" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="0912345678">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <input type="email" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="email@example.com">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Thời gian thuận tiện</label>
+              <select required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors">
+                <option value="">Chọn khung giờ</option>
+                <option value="morning">Sáng (8h-12h)</option>
+                <option value="afternoon">Chiều (13h-17h)</option>
+                <option value="evening">Tối (18h-21h)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Nội dung cần tư vấn</label>
+              <textarea required rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:outline-none transition-colors" placeholder="Ví dụ: Tôi muốn học IELTS..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary w-full">
+              Gửi yêu cầu tư vấn
+            </button>
+            <p class="text-xs text-gray-500 text-center">
+              Chúng tôi sẽ liên hệ trong vòng 24h
+            </p>
+          </form>
+        `;
+      }
+      
+      document.getElementById('modalContent').innerHTML = content;
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    // Close modal
+    function closeModal(event) {
+      if (event) event.stopPropagation();
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    async function saveRequest(type, payload) {
+      try {
+        const res = await fetch("http://localhost:5000/api/requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type, ...payload }),
+        });
+        if (!res.ok) throw new Error("backend");
+      } catch {
+        // fallback local if backend chưa có
+        const REQ_KEY = "eb_requests";
+        const existing = JSON.parse(localStorage.getItem(REQ_KEY) || "[]");
+        existing.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+          type,
+          createdAt: new Date().toISOString(),
+          status: "new",
+          ...payload,
+        });
+        localStorage.setItem(REQ_KEY, JSON.stringify(existing));
+      }
+    }
+
+    // Handle form submissions
+    function handleTrialSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const payload = {
+        name: form.querySelector('input[type="text"]').value,
+        email: form.querySelector('input[type="email"]').value,
+        phone: form.querySelector('input[type="tel"]').value,
+        level: form.querySelector('select')?.value || "",
+      };
+      saveRequest("trial", payload);
+      document.getElementById('modalContent').innerHTML = `
+        <div class="text-center py-8">
+          <div class="text-6xl mb-4">🎉</div>
+          <h2 class="text-3xl font-black gradient-text mb-4">Chúc mừng!</h2>
+          <p class="text-xl text-gray-600 mb-6">
+            Bạn đã đăng ký thành công!
+          </p>
+          <p class="text-gray-600 mb-6">
+            Chúng tôi đã gửi email kích hoạt tài khoản.<br>
+            Vui lòng kiểm tra hộp thư để bắt đầu học ngay!
+          </p>
+          <p class="text-sm text-gray-500">Yêu cầu đã được lưu, admin sẽ xử lý.</p>
+          <button onclick="closeModal()" class="btn-primary">
+            Đóng
+          </button>
+        </div>
+      `;
+    }
+
+    function handleContactSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const payload = {
+        name: form.querySelector('input[type="text"]').value,
+        phone: form.querySelector('input[type="tel"]').value,
+        email: form.querySelector('input[type="email"]').value,
+        timeslot: form.querySelector('select')?.value || "",
+        message: form.querySelector('textarea')?.value || "",
+      };
+      saveRequest("contact", payload);
+      document.getElementById('modalContent').innerHTML = `
+        <div class="text-center py-8">
+          <div class="text-6xl mb-4">✅</div>
+          <h2 class="text-3xl font-black gradient-text mb-4">Đã nhận yêu cầu!</h2>
+          <p class="text-xl text-gray-600 mb-6">
+            Cảm ơn bạn đã quan tâm đến English Blossom
+          </p>
+          <p class="text-gray-600 mb-6">
+            Chuyên viên tư vấn sẽ liên hệ với bạn trong vòng 24 giờ.<br>
+            Vui lòng để ý điện thoại nhé!
+          </p>
+          <p class="text-sm text-gray-500">Yêu cầu đã được lưu, admin sẽ xử lý.</p>
+          <button onclick="closeModal()" class="btn-primary">
+            Đóng
+          </button>
+        </div>
+      `;
+    }
+
+    // Element SDK
+    async function onConfigChange(config) {
+      document.getElementById('heroTitle').textContent = config.hero_title || defaultConfig.hero_title;
+      document.getElementById('heroSubtitle').textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+      document.getElementById('heroDescription').textContent = config.hero_description || defaultConfig.hero_description;
+      
+      document.getElementById('feature1Title').textContent = config.feature1_title || defaultConfig.feature1_title;
+      document.getElementById('feature2Title').textContent = config.feature2_title || defaultConfig.feature2_title;
+      document.getElementById('feature3Title').textContent = config.feature3_title || defaultConfig.feature3_title;
+      
+      document.getElementById('stat1Number').textContent = config.stat1_number || defaultConfig.stat1_number;
+      document.getElementById('stat1Label').textContent = config.stat1_label || defaultConfig.stat1_label;
+      document.getElementById('stat2Number').textContent = config.stat2_number || defaultConfig.stat2_number;
+      document.getElementById('stat2Label').textContent = config.stat2_label || defaultConfig.stat2_label;
+      document.getElementById('stat3Number').textContent = config.stat3_number || defaultConfig.stat3_number;
+      document.getElementById('stat3Label').textContent = config.stat3_label || defaultConfig.stat3_label;
+      document.getElementById('stat4Number').textContent = config.stat4_number || defaultConfig.stat4_number;
+      document.getElementById('stat4Label').textContent = config.stat4_label || defaultConfig.stat4_label;
+      
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      
+      document.querySelectorAll('.gradient-text').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)`;
+        el.style.webkitBackgroundClip = 'text';
+        el.style.webkitTextFillColor = 'transparent';
+        el.style.backgroundClip = 'text';
+      });
+      
+      document.querySelectorAll('.btn-primary').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      });
+      
+      document.querySelectorAll('.stat-number').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)`;
+        el.style.webkitBackgroundClip = 'text';
+        el.style.webkitTextFillColor = 'transparent';
+        el.style.backgroundClip = 'text';
+      });
+      
+      document.getElementById('scrollIndicator').style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          },
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["hero_title", config.hero_title || defaultConfig.hero_title],
+        ["hero_subtitle", config.hero_subtitle || defaultConfig.hero_subtitle],
+        ["hero_description", config.hero_description || defaultConfig.hero_description],
+        ["feature1_title", config.feature1_title || defaultConfig.feature1_title],
+        ["feature2_title", config.feature2_title || defaultConfig.feature2_title],
+        ["feature3_title", config.feature3_title || defaultConfig.feature3_title],
+        ["stat1_number", config.stat1_number || defaultConfig.stat1_number],
+        ["stat1_label", config.stat1_label || defaultConfig.stat1_label]
+      ]);
+    }
+
+    // Initialize
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b201eb9573e2907',t:'MTc2NjQxMTc1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

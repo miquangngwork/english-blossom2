@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Learning Platform</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .fade-in-up {
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    .feature-card {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: white;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(236, 72, 153, 0.25);
+    }
+    
+    .btn-pink {
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+    }
+    
+    .btn-pink:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+    }
+    
+    .gradient-pink-bg {
+      background: linear-gradient(135deg, #fce7f3 0%, #ffffff 50%, #fff1f2 100%);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .pink-glow {
+      box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+    }
+    
+    .circle-decoration {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.1;
+    }
+
+    .auth-bar {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      display: flex;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    .auth-btn {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 14px;
+      border: 2px solid #f472b6;
+      color: #ec4899;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .auth-btn:hover {
+      background: #ffe4ef;
+    }
+
+    .account-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+      color: white;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 8px 20px rgba(244, 63, 94, 0.25);
+      transition: transform 0.2s ease;
+    }
+
+    .account-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .logout-btn {
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: #fff5f7;
+      border: 2px solid #fecdd3;
+      color: #f43f5e;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      background: #ffe4e6;
+    }
+
+    .avatar-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: white;
+      color: #f43f5e;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full">
+  <div id="app" class="w-full h-full overflow-auto gradient-pink-bg"><!-- Decorative circles -->
+   <div class="circle-decoration" style="width: 300px; height: 300px; background: #ec4899; top: -100px; right: -100px;"></div>
+   <div class="circle-decoration" style="width: 200px; height: 200px; background: #f472b6; bottom: 100px; left: -50px;"></div><!-- Hero Section -->
+   <header class="relative py-20 px-6 overflow-hidden">
+    <div class="auth-bar" id="authBar">
+     <button id="btnLogin" class="auth-btn">Đăng nhập / Đăng ký</button>
+     <button id="btnAccount" class="account-btn hidden"><span class="avatar-circle" id="accountAvatar">U</span> <span id="accountName">Tài khoản</span></button>
+     <button id="btnLogout" class="logout-btn hidden">⇦ Đăng xuất</button>
+    </div>
+    <div class="max-w-6xl mx-auto text-center relative z-10">
+     <div class="inline-block mb-6 fade-in-up">
+      <div class="text-7xl float-animation">
+       🌸
+      </div>
+     </div>
+     <h1 id="siteTitle" class="text-6xl font-bold mb-4 fade-in-up gradient-text" style="animation-delay: 0.1s;">English Blossom</h1>
+    <p id="tagline" class="text-2xl text-gray-700 mb-8 fade-in-up" style="animation-delay: 0.2s;">Nở rộ khả năng tiếng Anh của bạn 🌺</p><button id="ctaStart" class="btn-pink text-white font-bold px-10 py-4 rounded-full text-lg fade-in-up" style="animation-delay: 0.3s;"> ✨ Tìm hiểu ngay </button>
+    </div>
+   </header><!-- Main Features Section -->
+   <main class="py-16 px-6 relative">
+    <div class="max-w-6xl mx-auto">
+     <h2 class="text-5xl font-bold text-center mb-4"><span class="gradient-text">Khám phá các chế độ học</span></h2>
+     <p class="text-center text-gray-600 mb-12 text-lg">Chọn cách học phù hợp với bạn nhất</p>
+     <div class="grid md:grid-cols-2 gap-10 mb-16"><!-- Vocabulary Learning Card -->
+      <div class="feature-card rounded-3xl p-10 shadow-xl border-4 border-pink-100">
+       <div class="flex justify-between items-start mb-6">
+        <div class="text-6xl">
+         📚
+        </div>
+        <div class="bg-pink-100 text-pink-600 font-semibold px-4 py-2 rounded-full text-sm">
+         Phổ biến nhất
+        </div>
+       </div>
+       <h3 id="vocabTitle" class="text-3xl font-bold mb-4" style="color: #ec4899;">Học từ vựng thông minh</h3>
+       <p id="vocabDesc" class="text-gray-600 mb-8 text-lg leading-relaxed">Kiểm tra trình độ, học từ qua game và bài kiểm tra được cá nhân hóa</p>
+       <div class="space-y-4 mb-8">
+        <div class="flex items-start bg-pink-50 p-4 rounded-xl"><span class="text-pink-500 mr-3 text-xl">🎯</span> <span class="text-gray-700">Đánh giá trình độ chính xác với AI</span>
+        </div>
+        <div class="flex items-start bg-pink-50 p-4 rounded-xl"><span class="text-pink-500 mr-3 text-xl">📖</span> <span class="text-gray-700">Bộ từ vựng được thiết kế riêng cho bạn</span>
+        </div>
+        <div class="flex items-start bg-pink-50 p-4 rounded-xl"><span class="text-pink-500 mr-3 text-xl">🎮</span> <span class="text-gray-700">Trò chơi vui nhộn: Word Hunt, Matching, Story Builder</span>
+        </div>
+        <div class="flex items-start bg-pink-50 p-4 rounded-xl"><span class="text-pink-500 mr-3 text-xl">✅</span> <span class="text-gray-700">Bài kiểm tra đa dạng theo từng cấp độ</span>
+        </div>
+       </div><button id="ctaVocab" class="w-full btn-pink text-white font-bold py-4 rounded-2xl text-lg"> Tìm hiểu ngay → </button>
+      </div><!-- Speaking Practice Card -->
+      <div class="feature-card rounded-3xl p-10 shadow-xl border-4 border-rose-100">
+       <div class="flex justify-between items-start mb-6">
+        <div class="text-6xl">
+         🎤
+        </div>
+        <div class="bg-rose-100 text-rose-600 font-semibold px-4 py-2 rounded-full text-sm">
+         AI Feedback
+        </div>
+       </div>
+       <h3 id="speakingTitle" class="text-3xl font-bold mb-4" style="color: #f43f5e;">Luyện nói tự tin</h3>
+       <p id="speakingDesc" class="text-gray-600 mb-8 text-lg leading-relaxed">Thực hành speaking theo format IELTS và ứng xử tự nhiên như người bản xứ</p>
+       <div class="space-y-4 mb-8">
+        <div class="flex items-start bg-rose-50 p-4 rounded-xl"><span class="text-rose-500 mr-3 text-xl">📝</span> <span class="text-gray-700">IELTS Speaking Format (Part 1, 2, 3)</span>
+        </div>
+        <div class="flex items-start bg-rose-50 p-4 rounded-xl"><span class="text-rose-500 mr-3 text-xl">💬</span> <span class="text-gray-700">Chế độ ứng xử tự do với câu hỏi bất ngờ</span>
+        </div>
+        <div class="flex items-start bg-rose-50 p-4 rounded-xl"><span class="text-rose-500 mr-3 text-xl">🔄</span> <span class="text-gray-700">Câu hỏi kết hợp từ vựng bạn đang học</span>
+        </div>
+        <div class="flex items-start bg-rose-50 p-4 rounded-xl"><span class="text-rose-500 mr-3 text-xl">🤖</span> <span class="text-gray-700">AI chấm điểm và góp ý chi tiết ngay lập tức</span>
+        </div>
+       </div><button id="ctaSpeaking" class="w-full text-white font-bold py-4 rounded-2xl text-lg" style="background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); transition: all 0.3s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"> Tìm hiểu ngay → </button>
+      </div>
+     </div><!-- Stats Section -->
+     <div class="grid md:grid-cols-4 gap-6 mb-16">
+      <div class="bg-white rounded-2xl p-6 text-center shadow-lg pink-glow">
+       <div class="text-4xl font-bold gradient-text mb-2">
+        1000+
+       </div>
+       <div class="text-gray-600">
+        Từ vựng
+       </div>
+      </div>
+      <div class="bg-white rounded-2xl p-6 text-center shadow-lg pink-glow">
+       <div class="text-4xl font-bold gradient-text mb-2">
+        50+
+       </div>
+       <div class="text-gray-600">
+        Trò chơi
+       </div>
+      </div>
+      <div class="bg-white rounded-2xl p-6 text-center shadow-lg pink-glow">
+       <div class="text-4xl font-bold gradient-text mb-2">
+        AI
+       </div>
+       <div class="text-gray-600">
+        Hỗ trợ 24/7
+       </div>
+      </div>
+      <div class="bg-white rounded-2xl p-6 text-center shadow-lg pink-glow">
+       <div class="text-4xl font-bold gradient-text mb-2">
+        ∞
+       </div>
+       <div class="text-gray-600">
+        Luyện tập
+       </div>
+      </div>
+     </div><!-- Additional Features -->
+     <div class="bg-white rounded-3xl p-10 shadow-2xl border-4 border-pink-50">
+      <h3 class="text-4xl font-bold text-center mb-8"><span class="gradient-text">Tính năng đặc biệt 🌟</span></h3>
+      <div class="grid md:grid-cols-3 gap-8">
+       <div class="text-center p-6 rounded-2xl bg-gradient-to-br from-pink-50 to-white">
+        <div class="text-5xl mb-4">
+         📊
+        </div>
+        <h4 class="font-bold text-xl text-gray-800 mb-3">Theo dõi tiến độ</h4>
+        <p class="text-gray-600">Biểu đồ học tập đẹp mắt và thống kê chi tiết từng ngày</p>
+       </div>
+       <div class="text-center p-6 rounded-2xl bg-gradient-to-br from-rose-50 to-white">
+        <div class="text-5xl mb-4">
+         🏆
+        </div>
+        <h4 class="font-bold text-xl text-gray-800 mb-3">Huy hiệu &amp; Phần thưởng</h4>
+        <p class="text-gray-600">Nhận thưởng và huy hiệu khi hoàn thành mục tiêu</p>
+       </div>
+       <div class="text-center p-6 rounded-2xl bg-gradient-to-br from-pink-50 to-white">
+        <div class="text-5xl mb-4">
+         📱
+        </div>
+        <h4 class="font-bold text-xl text-gray-800 mb-3">Học mọi lúc mọi nơi</h4>
+        <p class="text-gray-600">Giao diện đẹp trên mọi thiết bị: phone, tablet, PC</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </main><!-- Development Suggestions Section -->
+   <section class="py-16 px-6 bg-white">
+    <div class="max-w-5xl mx-auto">
+     <h2 class="text-4xl font-bold text-center mb-4"><span class="gradient-text">Lộ trình phát triển 🚀</span></h2>
+     <p class="text-center text-gray-600 mb-12 text-lg">Những tính năng sắp ra mắt</p>
+     <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-gradient-to-br from-pink-50 to-white p-8 rounded-2xl shadow-lg">
+       <h3 class="font-bold text-xl mb-3" style="color: #ec4899;">💡 Thuật toán Adaptive Testing</h3>
+       <p class="text-gray-700">Câu hỏi tự động điều chỉnh độ khó dựa trên câu trả lời. Sử dụng IRT (Item Response Theory) để đánh giá chính xác với ít câu hỏi nhất.</p>
+      </div>
+      <div class="bg-gradient-to-br from-rose-50 to-white p-8 rounded-2xl shadow-lg">
+       <h3 class="font-bold text-xl mb-3" style="color: #f43f5e;">🎮 Game từ vựng độc đáo</h3>
+       <p class="text-gray-700"><strong>Word Hunt</strong>, <strong>Story Builder</strong>, <strong>Speed Match</strong>, <strong>Sentence Scramble</strong> - Học mà vui như chơi!</p>
+      </div>
+      <div class="bg-gradient-to-br from-pink-50 to-white p-8 rounded-2xl shadow-lg">
+       <h3 class="font-bold text-xl mb-3" style="color: #ec4899;">🤖 AI Speaking Coach</h3>
+       <p class="text-gray-700"><strong>Whisper API + GPT-4</strong> - Chấm phát âm, ngữ pháp, từ vựng và độ mạch lạc. Chi phí siêu rẻ: chỉ ~$0.01-0.05/bài speaking!</p>
+      </div>
+      <div class="bg-gradient-to-br from-rose-50 to-white p-8 rounded-2xl shadow-lg">
+       <h3 class="font-bold text-xl mb-3" style="color: #f43f5e;">📝 Form bài kiểm tra đa dạng</h3>
+       <p class="text-gray-700">Multiple choice thông minh, Fill-in-blank, Matching, Sentence completion, Error correction trong context thực tế.</p>
+      </div>
+      <div class="bg-gradient-to-br from-pink-50 to-white p-8 rounded-2xl shadow-lg">
+       <h3 class="font-bold text-xl mb-3" style="color: #ec4899;">🎧 Listening Practice</h3>
+       <p class="text-gray-700">Nghe và điền từ, transcribe audio với giọng native speakers từ nhiều quốc gia khác nhau.</p>
+      </div>
+      <div class="bg-gradient-to-br from-rose-50 to-white p-8 rounded-2xl shadow-lg">
+       <h3 class="font-bold text-xl mb-3" style="color: #f43f5e;">✍️ Writing Assistant</h3>
+       <p class="text-gray-700">AI feedback về grammar, vocabulary, coherence. Luyện viết IELTS Writing Task 1 &amp; 2 với band score prediction.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Footer -->
+   <footer class="bg-gradient-to-r from-pink-100 to-rose-100 py-12 px-6">
+    <div class="max-w-6xl mx-auto text-center">
+     <div class="text-5xl mb-4">
+      🌸
+     </div>
+     <h3 class="text-2xl font-bold gradient-text mb-2">English Blossom</h3>
+     <p class="text-gray-600 mb-6">Nơi khả năng tiếng Anh của bạn nở rộ mỗi ngày</p>
+     <p class="text-gray-500 text-sm">© 2024 English Blossom. Made with 💖 for learners</p>
+    </div>
+   </footer>
+  </div>
+  <script>
+    const defaultConfig = {
+      site_title: "English Blossom",
+      tagline: "Nở rộ khả năng tiếng Anh của bạn 🌺",
+      vocab_title: "Học từ vựng thông minh",
+      vocab_desc: "Kiểm tra trình độ, học từ qua game và bài kiểm tra được cá nhân hóa",
+      speaking_title: "Luyện nói tự tin",
+      speaking_desc: "Thực hành speaking theo format IELTS và ứng xử tự nhiên như người bản xứ",
+      primary_color: "#ec4899",
+      secondary_color: "#f472b6",
+      accent_color: "#f43f5e",
+      text_color: "#1f2937",
+      background_color: "#fce7f3"
+    };
+
+    async function onConfigChange(config) {
+      document.getElementById('siteTitle').textContent = config.site_title || defaultConfig.site_title;
+      document.getElementById('tagline').textContent = config.tagline || defaultConfig.tagline;
+      document.getElementById('vocabTitle').textContent = config.vocab_title || defaultConfig.vocab_title;
+      document.getElementById('vocabDesc').textContent = config.vocab_desc || defaultConfig.vocab_desc;
+      document.getElementById('speakingTitle').textContent = config.speaking_title || defaultConfig.speaking_title;
+      document.getElementById('speakingDesc').textContent = config.speaking_desc || defaultConfig.speaking_desc;
+      
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const bgColor = config.background_color || defaultConfig.background_color;
+      
+      document.querySelectorAll('.gradient-text').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)`;
+        el.style.webkitBackgroundClip = 'text';
+        el.style.webkitTextFillColor = 'transparent';
+        el.style.backgroundClip = 'text';
+      });
+      
+      document.querySelectorAll('.btn-pink').forEach(el => {
+        el.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      });
+      
+      document.getElementById('vocabTitle').style.color = primaryColor;
+      document.getElementById('speakingTitle').style.color = accentColor;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              window.elementSdk.setConfig({ accent_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["site_title", config.site_title || defaultConfig.site_title],
+        ["tagline", config.tagline || defaultConfig.tagline],
+        ["vocab_title", config.vocab_title || defaultConfig.vocab_title],
+        ["vocab_desc", config.vocab_desc || defaultConfig.vocab_desc],
+        ["speaking_title", config.speaking_title || defaultConfig.speaking_title],
+        ["speaking_desc", config.speaking_desc || defaultConfig.speaking_desc]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    const goInfo = () => { window.location.href = 'trangthongtin.html'; };
+    const goVocab = () => { window.location.href = 'trangchedohoc.html'; };
+    const goSpeaking = () => { window.location.href = 'trangspeaking.html'; };
+    const goLogin = () => { window.location.href = 'trangdangnhap.html'; };
+    const goAccount = () => { window.location.href = 'trangquanlitaikhoan.html'; };
+
+    const btnLogin = document.getElementById('btnLogin');
+    const btnAccount = document.getElementById('btnAccount');
+    const btnLogout = document.getElementById('btnLogout');
+    const accountName = document.getElementById('accountName');
+    const accountAvatar = document.getElementById('accountAvatar');
+    let token = localStorage.getItem("token");
+
+    async function loadUser() {
+      if (!token) {
+        btnLogin?.classList.remove('hidden');
+        btnAccount?.classList.add('hidden');
+        btnLogout?.classList.add('hidden');
+        return;
+      }
+      try {
+        const res = await fetch('http://localhost:5000/api/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const name = data?.profile?.fullName || data?.email || "Tài khoản";
+        accountName.textContent = name;
+        const initial = (data?.email || "U").substring(0, 1).toUpperCase();
+        accountAvatar.textContent = initial;
+        btnLogin?.classList.add('hidden');
+        btnAccount?.classList.remove('hidden');
+        btnLogout?.classList.remove('hidden');
+      } catch {
+        btnLogin?.classList.remove('hidden');
+        btnAccount?.classList.add('hidden');
+        btnLogout?.classList.add('hidden');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      token = null;
+      btnLogin?.classList.remove('hidden');
+      btnAccount?.classList.add('hidden');
+      btnLogout?.classList.add('hidden');
+      accountName.textContent = "Tài khoản";
+      accountAvatar.textContent = "U";
+    }
+
+    function handleVocabClick() {
+      if (token) {
+        goVocab();
+      } else {
+        goInfo();
+      }
+    }
+
+    function handleSpeakingClick() {
+      if (token) {
+        goSpeaking();
+      } else {
+        goInfo();
+      }
+    }
+
+    document.getElementById('ctaStart')?.addEventListener('click', goInfo);
+    document.getElementById('ctaVocab')?.addEventListener('click', handleVocabClick);
+    document.getElementById('ctaSpeaking')?.addEventListener('click', handleSpeakingClick);
+    document.getElementById('btnLogin')?.addEventListener('click', goLogin);
+    document.getElementById('btnAccount')?.addEventListener('click', goAccount);
+    document.getElementById('btnLogout')?.addEventListener('click', logout);
+
+    loadUser();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b203a5e665420e3',t:'MTc2NjQxMjg5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
