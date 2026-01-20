@@ -80,7 +80,7 @@ model AssessmentItem {
   difficulty     Float
   skillTag       String
   question       String
-  options        String[]
+  options        Json
   correctAnswer  String
   userAnswer     String?
   isCorrect      Boolean?

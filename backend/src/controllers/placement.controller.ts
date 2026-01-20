@@ -5,6 +5,9 @@ import { difficultyToCefrLevel, generateQuestion } from "../services/placement.a
 
 const TOTAL_QUESTIONS = 30; // Yêu cầu của bạn
 
+const normalizeOptions = (options: unknown): string[] =>
+    Array.isArray(options) ? options.map((opt) => String(opt)) : [];
+
 // 1. API START
 export const startPlacement = async (req: AuthRequest, res: Response) => {
   try {
@@ -35,7 +38,7 @@ export const startPlacement = async (req: AuthRequest, res: Response) => {
         question: {
             id: item.id,
             content: item.question,
-            options: item.options,
+            options: normalizeOptions(item.options),
             current: 1,
             total: TOTAL_QUESTIONS
         }
@@ -126,7 +129,7 @@ export const nextQuestion = async (req: AuthRequest, res: Response) => {
         question: {
             id: newItem.id,
             content: newItem.question,
-            options: newItem.options,
+            options: normalizeOptions(newItem.options),
             current: count + 1,
             total: TOTAL_QUESTIONS
         }
