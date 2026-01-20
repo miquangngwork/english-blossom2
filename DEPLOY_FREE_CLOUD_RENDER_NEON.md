@@ -36,6 +36,11 @@ Các cloud (Render/Heroku-style) sẽ cấp port qua biến môi trường `PORT
 
 Copy connection string này để lát set `DATABASE_URL`.
 
+**Quan trọng (Neon + Prisma migrations):**
+- Neon thường có 2 loại connection string: **Pooled** (qua pooler) và **Direct**.
+- Prisma migrations (DDL/ALTER TABLE) nên chạy bằng **Direct** connection string để tránh lỗi migrate hoặc migrate không áp dụng.
+- Nếu bạn chỉ muốn đơn giản: hãy dùng **Direct** connection string cho `DATABASE_URL` trên Render.
+
 ---
 
 ## 3) Deploy backend lên Render
@@ -46,16 +51,16 @@ Copy connection string này để lát set `DATABASE_URL`.
 4. Cấu hình:
    - Root Directory: `backend`
    - Runtime: Node
-   - Build Command:
-     - `npm install && npm run prisma:generate && npm run build`
-   - Start Command:
-     - `npm run prisma:migrate && npm start`
+  - Build Command (khuyến nghị để DB luôn đúng schema):
+    - `npm install && npm run prisma:generate && npm run prisma:migrate && npm run build`
+  - Start Command:
+    - `npm start`
 
 > Nếu bạn muốn migrate chạy đúng 1 lần khi deploy, Render có “Deploy Hook/Release command” tuỳ gói; cách ở trên thường vẫn chạy ổn.
 
 ### 3.1 Environment Variables trên Render
 Vào tab Environment của service, thêm:
-- `DATABASE_URL` = connection string từ Neon
+- `DATABASE_URL` = connection string từ Neon (**khuyến nghị dùng Direct**)
 - `OPENAI_API_KEY` = key OpenAI của bạn
 
 (Option) Nếu có path models custom:

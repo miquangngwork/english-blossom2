@@ -8,9 +8,34 @@ const TOTAL_QUESTIONS = 30; // Yêu cầu của bạn
 const normalizeOptions = (options: unknown): string[] =>
     Array.isArray(options) ? options.map((opt) => String(opt)) : [];
 
+let dbShapeEnsured = false;
+async function ensureDbShape() {
+    if (dbShapeEnsured) return;
+    dbShapeEnsured = true;
+
+    // These are safe, idempotent fixes for common drift when migrations haven't been applied.
+    // If a statement fails (e.g., permissions or already-correct types), we ignore and continue.
+    try {
+        await prisma.$executeRawUnsafe(
+            'ALTER TABLE "AssessmentItem" ALTER COLUMN "options" TYPE JSONB USING to_jsonb("options");'
+        );
+    } catch {
+        // ignore
+    }
+
+    try {
+        await prisma.$executeRawUnsafe(
+            'ALTER TABLE "UserVocab" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;'
+        );
+    } catch {
+        // ignore
+    }
+}
+
 // 1. API START
 export const startPlacement = async (req: AuthRequest, res: Response) => {
   try {
+        await ensureDbShape();
     const userId = req.userId!;
     await prisma.assessment.deleteMany({ where: { userId: userId, finalScore: null } });
 
@@ -52,6 +77,7 @@ export const startPlacement = async (req: AuthRequest, res: Response) => {
 // 2. API NEXT QUESTION
 export const nextQuestion = async (req: AuthRequest, res: Response) => {
   try {
+        await ensureDbShape();
     const { assessmentId, answer } = req.body;
     const userId = req.userId!;
 
