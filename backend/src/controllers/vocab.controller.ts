@@ -3,10 +3,12 @@ import { AuthRequest } from "../middleware/auth.middleware";
 import prisma from "../utils/prisma";
 import { generateVocabDeck, generateTestQuestions } from "../services/vocab.ai";
 import { generateGameData } from "../services/game.ai";
+import { ensureDbShape } from "../utils/dbShape";
 
 // 1. Lấy danh sách bộ từ
 export const getVocabBatches = async (req: AuthRequest, res: Response) => {
     try {
+        await ensureDbShape();
         const userId = req.userId!;
         const batches = await prisma.userVocab.findMany({
             where: { userId },
@@ -29,6 +31,7 @@ export const getVocabBatches = async (req: AuthRequest, res: Response) => {
 // 2. Lấy từ vựng theo Batch
 export const getLearningVocab = async (req: AuthRequest, res: Response) => {
   try {
+        await ensureDbShape();
     const userId = req.userId!;
     const { batchId } = req.query;
     
@@ -99,6 +102,7 @@ export const markMastered = async (req: AuthRequest, res: Response) => {
 // 4. Tạo thêm bộ từ vựng (UPDATE: CÓ VÒNG LẶP NẠP BÙ)
 export const generateMoreVocab = async (req: AuthRequest, res: Response) => {
     try {
+        await ensureDbShape();
         const userId = req.userId!;
         const TARGET_COUNT = 15; // Mục tiêu bắt buộc
         const MAX_RETRIES = 3;   // Gọi tối đa 3 lần để tránh treo server
@@ -169,6 +173,7 @@ export const generateMoreVocab = async (req: AuthRequest, res: Response) => {
         // E. Lưu vào DB (Giữ nguyên logic cũ)
         const batchId = `batch_${Date.now()}`;
         let savedCount = 0;
+        const dbErrors: string[] = [];
 
         for (const item of finalWords) {
             try {
@@ -201,7 +206,17 @@ export const generateMoreVocab = async (req: AuthRequest, res: Response) => {
                 savedCount++;
             } catch (err) {
                 console.error("Lỗi lưu từ:", item.word, err);
+                if (dbErrors.length < 3) dbErrors.push(String((err as any)?.message || err));
             }
+        }
+
+        if (savedCount === 0) {
+            return res.status(500).json({
+                message: "AI có trả về từ, nhưng không lưu được vào DB (schema drift hoặc quyền DB).",
+                count: 0,
+                batchId,
+                errors: dbErrors,
+            });
         }
 
         res.json({ 
@@ -223,6 +238,7 @@ export const generateMoreVocab = async (req: AuthRequest, res: Response) => {
 
 export const getGameData = async (req: AuthRequest, res: Response) => {
     try {
+        await ensureDbShape();
         const userId = req.userId!;
         const { batchId } = req.query; // Nhận batchId từ frontend
         

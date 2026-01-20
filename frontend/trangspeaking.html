@@ -333,6 +333,10 @@
     let aiCamera = null;
     let useAI = false;
 
+    let lastHintKey = null;
+    let lastHintData = null;
+    let hintLoading = false;
+
     // Hàm bật/tắt AI (Gắn vào nút Toggle nào đó trên giao diện)
     async function toggleAICamera() {
         const container = document.getElementById('aiCameraContainer');
@@ -371,17 +375,58 @@
         hintBox.classList.add('animate-bounce');
         setTimeout(() => hintBox.classList.remove('animate-bounce'), 1000);
 
-        // Thông báo
         const requiredWords = (latestTopicData && latestTopicData.requiredWords) || [];
-        const vocabText = requiredWords.length > 0
-            ? requiredWords.join(', ')
-            : "(Chưa có từ vựng gợi ý, hãy thử trả lời ngắn rồi mở rộng ý)";
+        const q = (latestTopicData && latestTopicData.question) || document.getElementById('topicText').innerText;
+        const hintKey = `${currentMode}::${q}`;
 
-        const structureText = currentMode === 'interview'
-            ? "Cấu trúc: 1) Nêu ý chính  2) Giải thích lý do  3) Ví dụ/Trải nghiệm"
-            : "Cấu trúc: 1) Trả lời trực tiếp  2) Lý do  3) Ví dụ";
+        // Render immediately with a basic structure while waiting.
+        const fallbackStructure = currentMode === 'interview'
+            ? "Cấu trúc: 1) Nêu ý chính  2) Giải thích lý do  3) Ví dụ  4) Kết lại"
+            : "Cấu trúc: 1) Trả lời trực tiếp  2) Lý do  3) Ví dụ  4) Kết lại";
+        const fallbackVocab = requiredWords.length ? requiredWords.join(', ') : "(Đang tải gợi ý từ AI...)";
+        hintText.innerText = `${fallbackStructure}\nTừ vựng: ${fallbackVocab}`;
 
-        hintText.innerText = `${structureText}\nTừ vựng: ${vocabText}`;
+        // Use cached hint if same question.
+        if (lastHintKey === hintKey && lastHintData) {
+            const s = (lastHintData.structure || []).map(x => `- ${x}`).join('\n');
+            const v = (lastHintData.vocab || []).join(', ');
+            const f = (lastHintData.frames || []).map(x => `• ${x}`).join('\n');
+            hintText.innerText = `Gợi ý cấu trúc:\n${s || fallbackStructure}\n\nTừ vựng: ${v || fallbackVocab}\n\nCâu khung:\n${f || ""}`.trim();
+            return;
+        }
+
+        if (hintLoading) return;
+        hintLoading = true;
+
+        fetch(`${API_BASE}/speaking/hint`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ mode: currentMode, question: q, requiredWords })
+        })
+        .then(async (res) => {
+            const text = await res.text();
+            let data = null;
+            try { data = text ? JSON.parse(text) : null; } catch { data = { message: text }; }
+            if (!res.ok) throw new Error((data && data.message) ? data.message : `HTTP ${res.status}`);
+            return data;
+        })
+        .then((data) => {
+            lastHintKey = hintKey;
+            lastHintData = data;
+
+            const structureLines = Array.isArray(data.structure) ? data.structure.map(x => `- ${x}`).join('\n') : "";
+            const vocabText = Array.isArray(data.vocab) ? data.vocab.join(', ') : "";
+            const framesText = Array.isArray(data.frames) ? data.frames.map(x => `• ${x}`).join('\n') : "";
+
+            hintText.innerText = `Gợi ý cấu trúc:\n${structureLines || fallbackStructure}\n\nTừ vựng: ${vocabText || fallbackVocab}\n\nCâu khung:\n${framesText}`.trim();
+        })
+        .catch((e) => {
+            console.error('hint error:', e);
+            // Keep fallback in UI.
+        })
+        .finally(() => {
+            hintLoading = false;
+        });
     }
   </script>
 <div id="aiCameraContainer" class="fixed bottom-4 right-4 z-50 hidden transition-all">

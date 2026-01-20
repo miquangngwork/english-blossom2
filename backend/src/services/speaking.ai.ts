@@ -3,6 +3,70 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 const cleanJson = (text: string) => text.replace(/```json/g, "").replace(/```/g, "").trim();
 
+export const generateSpeakingHint = async (params: {
+  mode: "ielts" | "interview";
+  question: string;
+  level?: string;
+  requiredWords?: string[];
+}) => {
+  const level = params.level || "A2";
+  const required = Array.isArray(params.requiredWords) ? params.requiredWords.filter(Boolean) : [];
+
+  const prompt = `
+    Role: English speaking coach.
+    Task: Give quick, concrete hints the user can use immediately.
+
+    Mode: ${params.mode}
+    Level: ${level}
+    Question:
+    """${params.question}"""
+
+    If provided, TRY to include these words (not mandatory): ${JSON.stringify(required.slice(0, 8))}
+
+    Requirements:
+    - Provide a short answer structure (3-5 bullet points) suitable for the mode.
+    - Provide 6-10 useful vocabulary items/collocations relevant to the question.
+    - Provide 3-6 ready-to-use sentence frames (simple, natural, not too advanced).
+    - Keep it practical; avoid long explanations.
+
+    OUTPUT JSON ONLY:
+    {
+      "structure": ["..."],
+      "vocab": ["..."],
+      "frames": ["..."]
+    }
+  `;
+
+  try {
+    const res = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.5,
+    });
+
+    const data = JSON.parse(cleanJson(res.choices[0]?.message?.content || "{}"));
+    const structure = Array.isArray(data.structure) ? data.structure.map(String) : [];
+    const vocab = Array.isArray(data.vocab) ? data.vocab.map(String) : [];
+    const frames = Array.isArray(data.frames) ? data.frames.map(String) : [];
+
+    return {
+      structure,
+      vocab,
+      frames,
+    };
+  } catch (e) {
+    console.error("[AI-HINT] Error:", e);
+    return {
+      structure: params.mode === "interview"
+        ? ["Main point", "Reason", "Example", "Reflection"]
+        : ["Direct answer", "Reason", "Example", "Result/feeling"],
+      vocab: required,
+      frames: [],
+    };
+  }
+};
+
 // ... (Hàm evaluateIelts giữ nguyên như cũ) ...
 export const evaluateIelts = async (question: string, transcript: string) => {
     const prompt = `

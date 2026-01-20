@@ -1,11 +1,13 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.middleware";
 import prisma from "../utils/prisma";
-import { evaluateIelts, evaluateInterview, generateQuestion } from "../services/speaking.ai";
+import { evaluateIelts, evaluateInterview, generateQuestion, generateSpeakingHint } from "../services/speaking.ai";
+import { ensureDbShape } from "../utils/dbShape";
 
 // API 1: Lấy chủ đề
 export const getSpeakingTopic = async (req: AuthRequest, res: Response) => {
   try {
+    await ensureDbShape();
     const userId = req.userId!;
     // Nhận thêm query 'part' (mặc định là 2 nếu không gửi)
     const { mode, part } = req.query; 
@@ -17,8 +19,8 @@ export const getSpeakingTopic = async (req: AuthRequest, res: Response) => {
     let words: string[] = [];
     if (targetMode === 'ielts') {
         const learningItems = await prisma.userVocab.findMany({
-            where: { userId, status: "learning" },
-            include: { vocab: true },
+        where: { userId, status: { in: ["learning", "new"] } },
+        select: { vocab: { select: { word: true } } },
             take: 5
         });
         words = learningItems.map((i: any) => i.vocab.word);
@@ -37,6 +39,40 @@ export const getSpeakingTopic = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error(error);
     res.json({ question: "Tell me about yourself.", mode: "ielts" });
+  }
+};
+
+export const getSpeakingHint = async (req: AuthRequest, res: Response) => {
+  try {
+    await ensureDbShape();
+    const userId = req.userId!;
+    const { mode, question, requiredWords } = req.body as {
+      mode?: "ielts" | "interview";
+      question?: string;
+      requiredWords?: string[];
+    };
+
+    const targetMode = mode === "interview" ? "interview" : "ielts";
+    const q = (question || "").toString().trim();
+    if (!q) return res.status(400).json({ message: "Thiếu question" });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    });
+    const level = user?.profile?.levelCefr || "A2";
+
+    const hint = await generateSpeakingHint({
+      mode: targetMode,
+      question: q,
+      level,
+      requiredWords: Array.isArray(requiredWords) ? requiredWords : [],
+    });
+
+    res.json(hint);
+  } catch (e: any) {
+    console.error("getSpeakingHint error:", e);
+    res.status(500).json({ message: "Lỗi tạo hint" });
   }
 };
 

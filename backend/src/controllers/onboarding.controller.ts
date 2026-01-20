@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.middleware";
 import prisma from "../utils/prisma";
 import { generateVocabDeck } from "../services/vocab.ai";
+import { ensureDbShape } from "../utils/dbShape";
 
 interface SurveyBody {
   interests?: string[];
@@ -20,6 +21,7 @@ export const submitSurvey = async (req: AuthRequest, res: Response) => {
   }
 
   try {
+    await ensureDbShape();
     // 1. Cập nhật Profile
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -55,6 +57,7 @@ export const submitSurvey = async (req: AuthRequest, res: Response) => {
     // 3. Lưu vào DB
     const batchId = `batch_${Date.now()}`;
     let savedCount = 0;
+    const dbErrors: string[] = [];
 
     for (const item of newWords) {
         try {
@@ -87,15 +90,25 @@ export const submitSurvey = async (req: AuthRequest, res: Response) => {
             savedCount++;
         } catch (dbError) {
             console.error(`>>> [LỖI DB] Không lưu được từ: ${item.word}`, dbError);
+            if (dbErrors.length < 3) dbErrors.push(String((dbError as any)?.message || dbError));
         }
     }
 
     console.log(`>>> [SUCCESS] Đã lưu thành công ${savedCount} từ.`);
 
-    res.json({ 
-        message: "Success", 
-        count: savedCount,
-        batchId: batchId
+    if (savedCount === 0) {
+      return res.status(500).json({
+        message: "Không lưu được từ vựng vào DB (schema drift hoặc quyền DB).",
+        count: 0,
+        batchId,
+        errors: dbErrors,
+      });
+    }
+
+    res.json({
+      message: "Success",
+      count: savedCount,
+      batchId: batchId,
     });
 
   } catch (error: any) {
