@@ -394,7 +394,6 @@
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full w-full">
   <div id="scrollIndicator" class="scroll-indicator"></div>
@@ -964,7 +963,7 @@
 
     async function saveRequest(type, payload) {
       try {
-        const res = await fetch("http://localhost:5000/api/requests", {
+        const res = await fetch("/api/requests", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ type, ...payload }),
