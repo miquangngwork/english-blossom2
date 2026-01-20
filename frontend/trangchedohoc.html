@@ -449,54 +449,141 @@
 
     // --- 1. PLACEMENT TEST (30 CÂU) ---
     let assessmentId = null;
-    async function startPlacement() {
-        document.getElementById('assessmentIntro').classList.add('hidden');
-        document.getElementById('assessmentQuiz').classList.remove('hidden');
-        
-        const res = await fetch(`${API_BASE}/placement/start`, { method: "POST", headers: getHeaders() });
-        const data = await res.json();
-        if (!res.ok) {
-            alert(data.message || "Không thể bắt đầu placement test");
-            return;
+
+    async function readJsonSafe(res) {
+        const text = await res.text();
+        if (!text) return null;
+        try {
+            return JSON.parse(text);
+        } catch {
+            return { message: text };
         }
-        assessmentId = data.assessmentId;
-        renderQuestion(data.question);
+    }
+
+    function showPlacementError(message, details) {
+        const el = document.getElementById('assessmentQuestion');
+        if (!el) return;
+        const extra = details ? `<pre class="mt-3 text-xs bg-white p-3 rounded-lg overflow-auto">${String(details)}</pre>` : "";
+        el.innerHTML = `
+            <div class="p-4 border-2 border-red-200 bg-red-50 rounded-xl">
+                <div class="font-semibold text-red-700">${message}</div>
+                ${extra}
+            </div>
+        `;
+    }
+
+    async function startPlacement() {
+        try {
+            document.getElementById('assessmentIntro').classList.add('hidden');
+            document.getElementById('assessmentQuiz').classList.remove('hidden');
+
+            showPlacementError("Đang tải câu hỏi...", "");
+
+            const res = await fetch(`${API_BASE}/placement/start`, { method: "POST", headers: getHeaders() });
+            const data = await readJsonSafe(res);
+
+            if (!res.ok) {
+                const msg = (data && data.message) ? data.message : "Không thể bắt đầu placement test";
+                showPlacementError(msg, `HTTP ${res.status}`);
+                alert(msg);
+                return;
+            }
+
+            if (!data || !data.assessmentId || !data.question) {
+                showPlacementError("Server trả về dữ liệu không hợp lệ.", JSON.stringify(data, null, 2));
+                return;
+            }
+
+            assessmentId = data.assessmentId;
+            renderQuestion(data.question);
+        } catch (e) {
+            console.error("startPlacement error:", e);
+            showPlacementError("Lỗi khi tải câu hỏi. Mở Console để xem chi tiết.", e && e.message ? e.message : String(e));
+            alert("Lỗi khi tải câu hỏi.");
+        }
     }
 
     function renderQuestion(q) {
-        document.getElementById('assessmentQuestion').innerHTML = `
-            <h3 class="text-xl font-bold mb-6 text-gray-800">${q.content}</h3>
-            <div class="grid gap-3">
-                ${q.options.map(opt => `
-                    <button onclick="submitAns('${opt}')" 
-                    class="p-4 border-2 border-gray-100 rounded-xl hover:border-pink-500 hover:bg-pink-50 text-left transition-all font-medium text-gray-700">
-                    ${opt}
+        try {
+            if (!q || typeof q !== 'object') {
+                showPlacementError("Câu hỏi không hợp lệ.", JSON.stringify(q, null, 2));
+                return;
+            }
+
+            const content = (q.content ?? q.question ?? '').toString();
+            const options = Array.isArray(q.options) ? q.options.map(o => String(o)) : [];
+            if (!content) {
+                showPlacementError("Thiếu nội dung câu hỏi.", JSON.stringify(q, null, 2));
+                return;
+            }
+
+            const questionEl = document.getElementById('assessmentQuestion');
+            questionEl.innerHTML = `
+                <h3 class="text-xl font-bold mb-6 text-gray-800">${content}</h3>
+                <div class="grid gap-3" id="assessmentOptions"></div>
+            `;
+
+            const optionsEl = document.getElementById('assessmentOptions');
+            if (!options.length) {
+                optionsEl.innerHTML = `<div class="text-sm text-gray-600">(Không có đáp án lựa chọn)</div>`;
+            } else {
+                optionsEl.innerHTML = options.map((opt, idx) => `
+                    <button data-ans-index="${idx}" 
+                        class="p-4 border-2 border-gray-100 rounded-xl hover:border-pink-500 hover:bg-pink-50 text-left transition-all font-medium text-gray-700">
+                        ${opt}
                     </button>
-                `).join('')}
-            </div>
-        `;
-        document.getElementById('assessmentScore').innerText = `Câu ${q.current}/${q.total}`;
-        document.getElementById('assessmentProgress').style.width = `${(q.current/q.total)*100}%`;
+                `).join('');
+
+                optionsEl.querySelectorAll('button[data-ans-index]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const i = Number(btn.getAttribute('data-ans-index'));
+                        submitAns(options[i]);
+                    });
+                });
+            }
+
+            const current = Number(q.current) || 1;
+            const total = Number(q.total) || 30;
+            document.getElementById('assessmentScore').innerText = `Câu ${current}/${total}`;
+            document.getElementById('assessmentProgress').style.width = `${Math.min(100, (current / total) * 100)}%`;
+        } catch (e) {
+            console.error("renderQuestion error:", e);
+            showPlacementError("Lỗi render câu hỏi.", e && e.message ? e.message : String(e));
+        }
     }
 
     async function submitAns(ans) {
-        const res = await fetch(`${API_BASE}/placement/next`, { 
-            method: "POST", headers: getHeaders(), body: JSON.stringify({ assessmentId, answer: ans }) 
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            alert(data.message || "Không thể lấy câu hỏi tiếp theo");
-            return;
-        }
-        
-        if (data.done) {
-            // Hoàn thành Test -> Hiện kết quả & Form
-            document.getElementById('assessmentQuiz').classList.add('hidden');
-            document.getElementById('assessmentResult').classList.remove('hidden');
-            document.getElementById('finalLevel').innerText = data.finalLevel;
-            document.getElementById('preferenceForm').classList.remove('hidden');
-        } else {
-            renderQuestion(data.question);
+        try {
+            const res = await fetch(`${API_BASE}/placement/next`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ assessmentId, answer: ans })
+            });
+
+            const data = await readJsonSafe(res);
+
+            if (!res.ok) {
+                const msg = (data && data.message) ? data.message : "Không thể lấy câu hỏi tiếp theo";
+                showPlacementError(msg, `HTTP ${res.status}`);
+                alert(msg);
+                return;
+            }
+
+            if (data && data.done) {
+                // Hoàn thành Test -> Hiện kết quả & Form
+                document.getElementById('assessmentQuiz').classList.add('hidden');
+                document.getElementById('assessmentResult').classList.remove('hidden');
+                document.getElementById('finalLevel').innerText = data.finalLevel;
+                document.getElementById('preferenceForm').classList.remove('hidden');
+            } else if (data && data.question) {
+                renderQuestion(data.question);
+            } else {
+                showPlacementError("Server trả về dữ liệu không hợp lệ.", JSON.stringify(data, null, 2));
+            }
+        } catch (e) {
+            console.error("submitAns error:", e);
+            showPlacementError("Lỗi khi lấy câu hỏi tiếp theo.", e && e.message ? e.message : String(e));
+            alert("Lỗi khi lấy câu hỏi tiếp theo.");
         }
     }
 
