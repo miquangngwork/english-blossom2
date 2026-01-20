@@ -39,7 +39,7 @@ export const getLearningVocab = async (req: AuthRequest, res: Response) => {
     
     if (!targetBatchId || targetBatchId === 'latest') {
         const latestEntry = await prisma.userVocab.findFirst({
-            where: { userId },
+                        where: { userId, batchId: { not: null } },
             orderBy: { createdAt: 'desc' }
         });
         targetBatchId = latestEntry?.batchId || "";
@@ -247,17 +247,18 @@ export const getGameData = async (req: AuthRequest, res: Response) => {
         // Nếu không có batchId hoặc là 'latest', lấy bộ mới nhất
         if (!targetBatch || targetBatch === 'latest') {
              const latest = await prisma.userVocab.findFirst({ 
-                 where: { userId }, 
+                 where: { userId, batchId: { not: null } }, 
                  orderBy: { createdAt: 'desc' } 
              });
              targetBatch = latest?.batchId || "";
         }
 
-        if (!targetBatch) return res.json({ matching: [], wordHunt: {}, speedMatch: [] });
+        // If user has old data without batchId, fall back to all vocab.
+        const vocabWhere = targetBatch ? { userId, batchId: targetBatch } : { userId };
 
         // Lấy từ vựng thuộc bộ đó
         const userVocabs = await prisma.userVocab.findMany({
-            where: { userId, batchId: targetBatch },
+            where: vocabWhere,
             include: { vocab: true }
         });
 
@@ -267,8 +268,8 @@ export const getGameData = async (req: AuthRequest, res: Response) => {
         const user = await prisma.user.findUnique({ where: { id: userId }, include: { profile: true } });
         const level = user?.profile?.levelCefr || "A1";
 
-        const gameData = await generateGameData(words, level); 
-        res.json(gameData);
+        const gameData = await generateGameData(words, level);
+        res.json(gameData || { matching: [], wordHunt: {}, speedMatch: [] });
 
     } catch (e) { 
         console.error(e);
@@ -278,23 +279,36 @@ export const getGameData = async (req: AuthRequest, res: Response) => {
 
 export const getTestContext = async (req: AuthRequest, res: Response) => {
     try {
+        await ensureDbShape();
         const userId = req.userId!;
         const { batchId } = req.query;
         let targetBatch = batchId as string;
         if (!targetBatch || targetBatch === 'latest') {
-             const latest = await prisma.userVocab.findFirst({ where: { userId }, orderBy: { createdAt: 'desc' } });
+             const latest = await prisma.userVocab.findFirst({
+                 where: { userId, batchId: { not: null } },
+                 orderBy: { createdAt: 'desc' }
+             });
              targetBatch = latest?.batchId || "";
         }
-        const userVocabs = await prisma.userVocab.findMany({ where: { userId, batchId: targetBatch }, include: { vocab: true } });
-        const wordList = userVocabs.map(uv => uv.vocab.word);
+
+        // If no batchId can be resolved, fall back to all vocab.
+        const vocabWhere = targetBatch ? { userId, batchId: targetBatch } : { userId };
+        const userVocabs = await prisma.userVocab.findMany({ where: vocabWhere, include: { vocab: true } });
+        const wordList = userVocabs
+            .map(uv => uv.vocab.word)
+            .filter((w): w is string => typeof w === 'string' && w.trim().length > 0);
 
         const hardItems = await prisma.hardWord.findMany({
             where: { userId, ...(targetBatch ? { batchId: targetBatch } : {}) },
             orderBy: { createdAt: 'desc' },
             take: 30
         });
-        const hardWords = hardItems.map(h => h.word);
+        const hardWords = hardItems
+            .map(h => h.word)
+            .filter((w): w is string => typeof w === 'string' && w.trim().length > 0);
+
         const prioritizedWords = Array.from(new Set([...hardWords, ...wordList]));
+        if (prioritizedWords.length === 0) return res.json({ questions: [] });
         
         // Gọi service AI để tạo câu hỏi
         const questions = await generateTestQuestions(prioritizedWords);
