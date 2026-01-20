@@ -1,4 +1,6 @@
 import { Response } from "express";
+import crypto from "crypto";
+import { Prisma } from "@prisma/client";
 import prisma from "../utils/prisma";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { difficultyToCefrLevel, generateQuestion } from "../services/placement.ai";
@@ -7,6 +9,71 @@ const TOTAL_QUESTIONS = 30; // Yêu cầu của bạn
 
 const normalizeOptions = (options: unknown): string[] =>
     Array.isArray(options) ? options.map((opt) => String(opt)) : [];
+
+type OptionsColumnKind = "jsonb" | "json" | "textArray" | "unknown";
+let optionsColumnKind: OptionsColumnKind = "unknown";
+
+async function detectOptionsColumnKind(): Promise<OptionsColumnKind> {
+    if (optionsColumnKind !== "unknown") return optionsColumnKind;
+    try {
+        const rows = await prisma.$queryRaw<
+            Array<{ data_type: string; udt_name: string }>
+        >(Prisma.sql`
+            SELECT data_type, udt_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+                AND table_name = 'AssessmentItem'
+                AND column_name = 'options'
+            LIMIT 1;
+        `);
+
+        const row = rows[0];
+        if (!row) return (optionsColumnKind = "unknown");
+        if (row.udt_name === "jsonb") return (optionsColumnKind = "jsonb");
+        if (row.udt_name === "json") return (optionsColumnKind = "json");
+        if (row.udt_name === "_text") return (optionsColumnKind = "textArray");
+        return (optionsColumnKind = "unknown");
+    } catch {
+        return (optionsColumnKind = "unknown");
+    }
+}
+
+async function createAssessmentItemFlexible(params: {
+    assessmentId: string;
+    difficulty: number;
+    skillTag: string;
+    question: string;
+    options: string[];
+    correctAnswer: string;
+}): Promise<{ id: string; question: string; options: unknown }> {
+    const id = crypto.randomUUID();
+    const kind = await detectOptionsColumnKind();
+
+    if (kind === "textArray") {
+        const rows = await prisma.$queryRaw<
+            Array<{ id: string; question: string; options: unknown }>
+        >(Prisma.sql`
+            INSERT INTO "AssessmentItem" ("id", "assessmentId", "difficulty", "skillTag", "question", "options", "correctAnswer")
+            VALUES (${id}, ${params.assessmentId}, ${params.difficulty}, ${params.skillTag}, ${params.question}, ${params.options}::text[], ${params.correctAnswer})
+            RETURNING "id", "question", "options";
+        `);
+        return rows[0]!;
+    }
+
+    // Default to JSON/JSONB using a JSON string cast to avoid binary-format issues.
+    const optionsJson = JSON.stringify(params.options);
+    const castType = kind === "json" ? Prisma.sql`::json` : Prisma.sql`::jsonb`;
+
+    const rows = await prisma.$queryRaw<
+        Array<{ id: string; question: string; options: unknown }>
+    >(Prisma.sql`
+        INSERT INTO "AssessmentItem" ("id", "assessmentId", "difficulty", "skillTag", "question", "options", "correctAnswer")
+        VALUES (${id}, ${params.assessmentId}, ${params.difficulty}, ${params.skillTag}, ${params.question}, ${optionsJson}${castType}, ${params.correctAnswer})
+        RETURNING "id", "question", "options";
+    `);
+
+    return rows[0]!;
+}
 
 let dbShapeEnsured = false;
 async function ensureDbShape() {
@@ -19,16 +86,16 @@ async function ensureDbShape() {
         await prisma.$executeRawUnsafe(
             'ALTER TABLE "AssessmentItem" ALTER COLUMN "options" TYPE JSONB USING to_jsonb("options");'
         );
-    } catch {
-        // ignore
+    } catch (e) {
+        console.error("ensureDbShape: options alter failed", e);
     }
 
     try {
         await prisma.$executeRawUnsafe(
             'ALTER TABLE "UserVocab" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;'
         );
-    } catch {
-        // ignore
+    } catch (e) {
+        console.error("ensureDbShape: userVocab createdAt add failed", e);
     }
 }
 
@@ -47,15 +114,13 @@ export const startPlacement = async (req: AuthRequest, res: Response) => {
     const startDiff = 3.0;
     const aiQuestion = await generateQuestion(startDiff);
     
-    const item = await prisma.assessmentItem.create({
-        data: {
-            assessmentId: assessment.id,
-            difficulty: startDiff,
-            skillTag: aiQuestion.skillTag,
-            question: aiQuestion.question,
-            options: aiQuestion.options,
-            correctAnswer: aiQuestion.correctAnswer
-        }
+    const item = await createAssessmentItemFlexible({
+      assessmentId: assessment.id,
+      difficulty: startDiff,
+      skillTag: aiQuestion.skillTag,
+      question: aiQuestion.question,
+      options: aiQuestion.options,
+      correctAnswer: aiQuestion.correctAnswer,
     });
 
     res.json({ 
@@ -139,15 +204,13 @@ export const nextQuestion = async (req: AuthRequest, res: Response) => {
 
     // Câu hỏi tiếp theo
     const aiQuestion = await generateQuestion(currentDifficulty);
-    const newItem = await prisma.assessmentItem.create({
-        data: {
-            assessmentId,
-            difficulty: currentDifficulty,
-            skillTag: aiQuestion.skillTag,
-            question: aiQuestion.question,
-            options: aiQuestion.options,
-            correctAnswer: aiQuestion.correctAnswer
-        }
+    const newItem = await createAssessmentItemFlexible({
+      assessmentId,
+      difficulty: currentDifficulty,
+      skillTag: aiQuestion.skillTag,
+      question: aiQuestion.question,
+      options: aiQuestion.options,
+      correctAnswer: aiQuestion.correctAnswer,
     });
 
     res.json({
