@@ -298,14 +298,20 @@ export const getTestContext = async (req: AuthRequest, res: Response) => {
             .map(uv => uv.vocab.word)
             .filter((w): w is string => typeof w === 'string' && w.trim().length > 0);
 
-        const hardItems = await prisma.hardWord.findMany({
-            where: { userId, ...(targetBatch ? { batchId: targetBatch } : {}) },
-            orderBy: { createdAt: 'desc' },
-            take: 30
-        });
-        const hardWords = hardItems
-            .map(h => h.word)
-            .filter((w): w is string => typeof w === 'string' && w.trim().length > 0);
+        let hardWords: string[] = [];
+        try {
+            const hardItems = await prisma.hardWord.findMany({
+                where: { userId, ...(targetBatch ? { batchId: targetBatch } : {}) },
+                orderBy: { createdAt: 'desc' },
+                take: 30
+            });
+            hardWords = hardItems
+                .map(h => h.word)
+                .filter((w): w is string => typeof w === 'string' && w.trim().length > 0);
+        } catch (e) {
+            console.error("getTestContext: hardWord query failed (ignored)", e);
+            hardWords = [];
+        }
 
         const prioritizedWords = Array.from(new Set([...hardWords, ...wordList]));
         if (prioritizedWords.length === 0) return res.json({ questions: [] });
@@ -313,7 +319,13 @@ export const getTestContext = async (req: AuthRequest, res: Response) => {
         // Gọi service AI để tạo câu hỏi
         const questions = await generateTestQuestions(prioritizedWords);
         res.json({ questions });
-    } catch (error) { res.status(500).json({ questions: [] }); }
+    } catch (error: any) {
+        console.error("getTestContext error:", error);
+        res.status(500).json({
+            questions: [],
+            message: error?.message || "Internal Server Error",
+        });
+    }
 };
 
 export const saveHardWords = async (req: AuthRequest, res: Response) => {

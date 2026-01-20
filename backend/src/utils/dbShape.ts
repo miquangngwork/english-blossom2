@@ -23,4 +23,12 @@ export async function ensureDbShape() {
     } catch (e) {
         console.error("ensureDbShape: vocabWord example add failed", e);
     }
+
+    try {
+        await prisma.$executeRawUnsafe(
+            'ALTER TABLE "HardWord" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;'
+        );
+    } catch (e) {
+        console.error("ensureDbShape: hardWord createdAt add failed", e);
+    }
 }
