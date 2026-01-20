@@ -14,7 +14,10 @@ app.use(cors({
 app.use(express.json());
 
 // --- [QUAN TRỌNG] MỞ QUYỀN TRUY CẬP THƯ MỤC FRONTEND ---
-const frontendRoot = path.join(__dirname, "../../frontend");
+// When compiled to dist/, __dirname changes (src -> dist). Resolve paths from repo root instead.
+const backendDir = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(backendDir, "..");
+const frontendRoot = path.join(repoRoot, "frontend");
 const frontendPublic = path.join(frontendRoot, "public");
 
 // Serve HTML files in frontend root (index.html, trangspeaking.html, ...)
