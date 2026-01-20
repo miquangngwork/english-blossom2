@@ -22,9 +22,9 @@ export const generateGameData = async (words: string[], level: string) => {
     - Format: { "id": 1, "term": "English Word", "match": "Vietnamese Meaning" }
 
     GAME 2: "wordHunt" (Grid generation data)
-    - Select 6 words from input.
+    - Select 8 words from input (prefer single-token words, avoid very long words > 14 chars, avoid duplicates).
     - Convert them to UPPERCASE.
-    - Format: { "words": ["WORD1", "WORD2"], "gridSize": 10 } (Frontend will generate the grid).
+    - Format: { "words": ["WORD1", "WORD2", ...] } (Frontend will generate a proper word-search grid).
 
     GAME 3: "speedMatch" (10 questions)
     - Create 10 rapid-fire questions.

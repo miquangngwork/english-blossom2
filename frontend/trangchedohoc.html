@@ -963,44 +963,124 @@ function updateFlashcard() {
 
     // 3. GAME WORD HUNT
     function playWordHunt() {
-        const words = currentGameData?.wordHunt?.words;
-        if(!words?.length) return alert("Chưa có dữ liệu cho game này.");
+        const rawWords = currentGameData?.wordHunt?.words;
+        if(!rawWords?.length) return alert("Chưa có dữ liệu cho game này.");
 
         document.getElementById('gameMenu').classList.add('hidden');
-        
-        // Tạo grid giả lập (trong thực tế cần thuật toán xếp chữ phức tạp hơn)
-        const gridSize = 10;
+
         const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
-        
-        // Đặt từ vào grid (ngang)
-        words.forEach((w, i) => { 
-            if(i < gridSize) {
-                for(let j=0; j<w.length && j < gridSize; j++) {
-                    grid[i][j] = w[j];
-                }
+
+        const sanitizeWord = (w) => {
+            const cleaned = String(w || "").replace(/[^A-Za-z]/g, "").toUpperCase();
+            if (cleaned.length < 3) return null;
+            return cleaned;
+        };
+
+        // Clean + dedupe
+        const candidates = Array.from(new Set(rawWords.map(sanitizeWord).filter(Boolean)));
+        if (!candidates.length) return alert("Không có từ hợp lệ để chơi Word Hunt.");
+
+        // Pick up to 8 words for a more "word search" feel
+        const chosen = candidates.sort(() => 0.5 - Math.random()).slice(0, 8);
+
+        // Dynamic grid size to avoid cutting long words
+        const maxLen = Math.max(...chosen.map(w => w.length));
+        let gridSize = Math.max(10, Math.min(14, maxLen + 2));
+
+        const dirs = [
+            { dr: 0, dc: 1 },   // →
+            { dr: 0, dc: -1 },  // ←
+            { dr: 1, dc: 0 },   // ↓
+            { dr: -1, dc: 0 },  // ↑
+            { dr: 1, dc: 1 },   // ↘
+            { dr: -1, dc: -1 }, // ↖
+            { dr: 1, dc: -1 },  // ↙
+            { dr: -1, dc: 1 },  // ↗
+        ];
+
+        const makeGrid = (size) => Array(size).fill(null).map(() => Array(size).fill(''));
+
+        const canPlace = (grid, word, r0, c0, dr, dc) => {
+            for (let i = 0; i < word.length; i++) {
+                const r = r0 + dr * i;
+                const c = c0 + dc * i;
+                const cell = grid[r][c];
+                if (cell !== '' && cell !== word[i]) return false;
             }
-        });
-        
-        // Điền ký tự ngẫu nhiên vào chỗ trống
+            return true;
+        };
+
+        const placeWord = (grid, word) => {
+            const size = grid.length;
+            for (let attempt = 0; attempt < 250; attempt++) {
+                const dir = dirs[Math.floor(Math.random() * dirs.length)];
+                const dr = dir.dr, dc = dir.dc;
+
+                const rMin = dr === -1 ? word.length - 1 : 0;
+                const rMax = dr === 1 ? size - word.length : size - 1;
+                const cMin = dc === -1 ? word.length - 1 : 0;
+                const cMax = dc === 1 ? size - word.length : size - 1;
+                if (rMax < rMin || cMax < cMin) continue;
+
+                const r0 = Math.floor(Math.random() * (rMax - rMin + 1)) + rMin;
+                const c0 = Math.floor(Math.random() * (cMax - cMin + 1)) + cMin;
+
+                if (!canPlace(grid, word, r0, c0, dr, dc)) continue;
+                for (let i = 0; i < word.length; i++) {
+                    grid[r0 + dr * i][c0 + dc * i] = word[i];
+                }
+                return true;
+            }
+            return false;
+        };
+
+        let grid = makeGrid(gridSize);
+        const placed = [];
+
+        for (const w of chosen) {
+            // If cannot place, try a slightly bigger grid (up to 14)
+            let ok = placeWord(grid, w);
+            if (!ok && gridSize < 14) {
+                gridSize = Math.min(14, gridSize + 1);
+                grid = makeGrid(gridSize);
+                placed.length = 0;
+                // restart placing with new grid
+                for (const ww of chosen) {
+                    if (placeWord(grid, ww)) placed.push(ww);
+                }
+                break;
+            }
+            if (ok) placed.push(w);
+        }
+
+        // Fill empty cells
         for(let r=0; r<gridSize; r++) {
             for(let c=0; c<gridSize; c++) {
                 if(grid[r][c] === '') grid[r][c] = letters[Math.floor(Math.random() * letters.length)];
             }
         }
 
+        const cellClass = gridSize <= 10
+            ? 'w-8 h-8 md:w-10 md:h-10 text-base'
+            : gridSize <= 12
+                ? 'w-7 h-7 md:w-9 md:h-9 text-sm'
+                : 'w-6 h-6 md:w-8 md:h-8 text-xs';
+
         document.getElementById('gamePlayArea').innerHTML = `
-            <div class="max-w-4xl mx-auto p-4 flex flex-col items-center">
+            <div class="max-w-5xl mx-auto p-4 flex flex-col items-center">
                 <div class="w-full flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-green-600">🔍 Tìm các từ sau:</h2>
+                    <div>
+                        <h2 class="text-xl font-bold text-green-600">🔍 Word Hunt</h2>
+                        <p class="text-xs text-gray-500">Từ có thể nằm ngang/dọc/chéo và có thể ngược chiều.</p>
+                    </div>
                     <button onclick="backToGameMenu()" class="text-sm underline text-gray-500">Thoát</button>
                 </div>
-                <div class="flex flex-wrap gap-2 mb-4 justify-center">
-                    ${words.map(w => `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-bold">${w}</span>`).join('')}
+                <div class="flex flex-wrap gap-2 mb-4 justify-center max-w-4xl">
+                    ${placed.map(w => `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs md:text-sm font-bold break-all">${w}</span>`).join('')}
                 </div>
-                <div class="grid grid-cols-10 gap-1 bg-gray-100 p-2 rounded-lg select-none shadow-inner">
+                <div class="bg-gray-100 p-2 rounded-lg select-none shadow-inner" style="display:grid; grid-template-columns: repeat(${gridSize}, minmax(0, 1fr)); gap: 0.25rem;">
                     ${grid.flat().map(c => `
-                        <div class="w-8 h-8 md:w-10 md:h-10 bg-white flex items-center justify-center font-bold text-gray-700 cursor-pointer hover:bg-green-200 rounded" 
+                        <div class="${cellClass} bg-white flex items-center justify-center font-bold text-gray-700 cursor-pointer hover:bg-green-200 rounded" 
                              onclick="this.classList.toggle('bg-green-500'); this.classList.toggle('text-white')">
                             ${c}
                         </div>
