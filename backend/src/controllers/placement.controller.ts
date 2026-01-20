@@ -41,6 +41,7 @@ export const startPlacement = async (req: AuthRequest, res: Response) => {
         }
     });
   } catch (error) {
+        console.error("startPlacement error:", error);
     res.status(500).json({ message: "Lỗi khởi tạo bài test" });
   }
 };

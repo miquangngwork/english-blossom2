@@ -456,6 +456,10 @@
         
         const res = await fetch(`${API_BASE}/placement/start`, { method: "POST", headers: getHeaders() });
         const data = await res.json();
+        if (!res.ok) {
+            alert(data.message || "Không thể bắt đầu placement test");
+            return;
+        }
         assessmentId = data.assessmentId;
         renderQuestion(data.question);
     }
@@ -481,6 +485,10 @@
             method: "POST", headers: getHeaders(), body: JSON.stringify({ assessmentId, answer: ans }) 
         });
         const data = await res.json();
+        if (!res.ok) {
+            alert(data.message || "Không thể lấy câu hỏi tiếp theo");
+            return;
+        }
         
         if (data.done) {
             // Hoàn thành Test -> Hiện kết quả & Form

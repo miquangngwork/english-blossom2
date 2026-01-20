@@ -37,7 +37,7 @@ export async function generateQuestion(difficulty: number): Promise<AIQuestion> 
       "options": ["OptionA", "OptionB", "OptionC", "OptionD"],
       "correctAnswer": "OptionA",
       "skillTag": "vocab"
-  export async function generateQuestion(difficulty: number, usedQuestions: string[] = []): Promise<AIQuestion> {
+    }
   `;
 
   try {
@@ -53,10 +53,15 @@ export async function generateQuestion(difficulty: number): Promise<AIQuestion> 
     
     if (!data.question || !Array.isArray(data.options)) throw new Error("Invalid AI format");
 
+    const options = data.options.map((opt: unknown) => String(opt)).filter(Boolean);
+    if (!options.length) throw new Error("Empty options");
+
+    const correctAnswer = data.correctAnswer ? String(data.correctAnswer) : options[0];
+
     return {
         question: data.question,
-        options: data.options,
-        correctAnswer: data.correctAnswer,
+      options,
+      correctAnswer,
         skillTag: data.skillTag || "vocab"
     };
 
