@@ -353,6 +353,15 @@
                         if (state === 'struggling') {
                             showAutoHint(emotion);
                         }
+                    }, {
+                        // More sensitive defaults (tweak as needed)
+                        minConfidence: 0.32,
+                        negativeSumThreshold: 0.6,
+                        requiredDurationMs: 700,
+                        detectIntervalMs: 160,
+                        cooldownMs: 6000,
+                        scoreThreshold: 0.3,
+                        inputSize: 224
                     });
                 }
                 await aiCamera.start();

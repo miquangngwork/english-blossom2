@@ -1,7 +1,7 @@
 // public/_sdk/ai_camera.js
 
 class AICamera {
-    constructor(videoElementId, callback) {
+    constructor(videoElementId, callback, options = {}) {
         this.video = document.getElementById(videoElementId);
         this.callback = callback;
         this.isModelLoaded = false;
@@ -9,11 +9,18 @@ class AICamera {
         this.interval = null;
         this.negativeStartAt = null;
         this.lastDominant = null;
-        this.MIN_CONFIDENCE = 0.5;
-        this.REQUIRED_DURATION = 2000;
+        // Sensitivity knobs (can be overridden via options)
+        this.MIN_CONFIDENCE = typeof options.minConfidence === 'number' ? options.minConfidence : 0.35;
+        this.REQUIRED_DURATION = typeof options.requiredDurationMs === 'number' ? options.requiredDurationMs : 900;
+        this.NEGATIVE_SUM_THRESHOLD = typeof options.negativeSumThreshold === 'number' ? options.negativeSumThreshold : 0.65;
+        this.NEGATIVE_EMOTIONS = Array.isArray(options.negativeEmotions)
+            ? options.negativeEmotions
+            : ['sad', 'angry', 'fearful', 'disgusted', 'surprised'];
         this.COOLDOWN = false;
-        this.COOLDOWN_MS = 10000;
-        this.DETECT_INTERVAL_MS = 400;
+        this.COOLDOWN_MS = typeof options.cooldownMs === 'number' ? options.cooldownMs : 8000;
+        this.DETECT_INTERVAL_MS = typeof options.detectIntervalMs === 'number' ? options.detectIntervalMs : 200;
+        this.DETECTOR_INPUT_SIZE = typeof options.inputSize === 'number' ? options.inputSize : 224;
+        this.DETECTOR_SCORE_THRESHOLD = typeof options.scoreThreshold === 'number' ? options.scoreThreshold : 0.35;
         this._boundPlay = null;
     }
 
@@ -77,7 +84,7 @@ class AICamera {
                         try {
                             const detections = await faceapi.detectAllFaces(
                                 this.video,
-                                new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 })
+                                new faceapi.TinyFaceDetectorOptions({ inputSize: this.DETECTOR_INPUT_SIZE, scoreThreshold: this.DETECTOR_SCORE_THRESHOLD })
                             )
                                 .withFaceExpressions();
 
@@ -125,15 +132,23 @@ class AICamera {
             }
         });
 
-        const negativeEmotions = ['sad', 'angry', 'fearful'];
-        const isNegative = negativeEmotions.includes(dominant) && maxScore >= this.MIN_CONFIDENCE;
+        let negativeSum = 0;
+        for (const e of this.NEGATIVE_EMOTIONS) {
+            if (typeof expressions[e] === 'number') negativeSum += expressions[e];
+        }
+
+        // Trigger struggling if either:
+        // - dominant emotion is negative with enough confidence, OR
+        // - total negative probability mass is high (helps with subtle/unstable expressions)
+        const isNegative =
+            (this.NEGATIVE_EMOTIONS.includes(dominant) && maxScore >= this.MIN_CONFIDENCE) ||
+            (negativeSum >= this.NEGATIVE_SUM_THRESHOLD);
 
         if (isNegative) {
             const now = Date.now();
-            if (!this.negativeStartAt || this.lastDominant !== dominant) {
-                this.negativeStartAt = now;
-                this.lastDominant = dominant;
-            }
+            // Don't reset timer just because dominant negative emotion changes.
+            if (!this.negativeStartAt) this.negativeStartAt = now;
+            this.lastDominant = dominant;
             if (now - this.negativeStartAt >= this.REQUIRED_DURATION) {
                 this.callback('struggling', dominant, maxScore);
                 this.resetStruggle();
