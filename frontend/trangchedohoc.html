@@ -113,6 +113,11 @@
                 <p class="text-lg mb-2">Trình độ xác định: <span id="finalLevel" class="font-bold text-pink-600 text-2xl">Beginner</span></p>
                 <p class="text-gray-600 mt-2 italic" id="levelDescription">...</p>
             </div>
+
+            <button id="btnPlacementDetail" onclick="togglePlacementDetail()" class="text-sm underline text-gray-600 hover:text-pink-600 font-bold">
+                Xem kết quả chi tiết
+            </button>
+            <div id="placementDetail" class="hidden mt-4 text-left bg-white border border-gray-200 rounded-xl p-4 max-h-[420px] overflow-auto"></div>
         </div>
         
         <div id="preferenceForm" class="bg-white border-2 border-pink-100 p-6 rounded-xl mb-6">
@@ -450,6 +455,80 @@
     // --- 1. PLACEMENT TEST (30 CÂU) ---
     let assessmentId = null;
 
+    function escapeHtml(str) {
+        return String(str ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    async function togglePlacementDetail() {
+        const box = document.getElementById('placementDetail');
+        if (!box) return;
+        box.classList.toggle('hidden');
+        if (!box.classList.contains('hidden') && !box.dataset.loaded) {
+            await loadPlacementDetail();
+        }
+    }
+
+    async function loadPlacementDetail() {
+        const box = document.getElementById('placementDetail');
+        if (!box) return;
+        box.innerHTML = `<div class="text-sm text-gray-500">⏳ Đang tải chi tiết...</div>`;
+
+        const qs = assessmentId ? `?assessmentId=${encodeURIComponent(assessmentId)}` : "";
+        const res = await fetch(`${API_BASE}/placement/result${qs}`, { headers: getHeaders() });
+        const data = await readJsonSafe(res);
+        if (!res.ok) {
+            box.innerHTML = `<div class="text-sm text-red-600">⚠️ Không tải được chi tiết: ${escapeHtml((data && data.message) ? data.message : `HTTP ${res.status}`)}</div>`;
+            return;
+        }
+
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (!items.length) {
+            box.innerHTML = `<div class="text-sm text-gray-600">Chưa có dữ liệu chi tiết.</div>`;
+            box.dataset.loaded = "1";
+            return;
+        }
+
+        box.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <div class="text-sm text-gray-700 font-bold">Tổng đúng: ${escapeHtml(data.correct)} / ${escapeHtml(data.total)}</div>
+                <div class="text-xs text-gray-500">Ước lượng năng lực: ${escapeHtml((data.theta ?? "").toFixed ? data.theta.toFixed(2) : data.theta)}</div>
+            </div>
+            <div class="space-y-3">
+                ${items.map((it) => {
+                    const ok = it.isCorrect === true;
+                    const userAns = it.userAnswer || "(chưa trả lời)";
+                    const correct = it.correctAnswer || "";
+                    const opts = Array.isArray(it.options) ? it.options : [];
+                    return `
+                        <div class="p-3 rounded-xl border ${ok ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="font-bold text-gray-800">Câu ${escapeHtml(it.index)} ${ok ? '✅' : '❌'}</div>
+                                <div class="text-xs text-gray-500">Độ khó: ${escapeHtml(it.difficulty)} | ${escapeHtml(it.skillTag || '')}</div>
+                            </div>
+                            <div class="text-sm text-gray-800 mb-2">${escapeHtml(it.question)}</div>
+                            <div class="grid md:grid-cols-2 gap-2 text-sm">
+                                ${opts.map((o) => {
+                                    const isUser = String(o) === String(userAns);
+                                    const isCorrect = String(o) === String(correct);
+                                    const cls = isCorrect ? 'border-green-400 bg-white' : isUser ? 'border-red-400 bg-white' : 'border-gray-200 bg-white';
+                                    return `<div class="p-2 rounded-lg border ${cls}">${escapeHtml(o)}${isCorrect ? ' <span class="text-green-700 font-bold">(Đúng)</span>' : ''}${(!isCorrect && isUser) ? ' <span class="text-red-700 font-bold">(Bạn chọn)</span>' : ''}</div>`;
+                                }).join('')}
+                            </div>
+                            <div class="text-xs text-gray-700 mt-2">Bạn chọn: <b>${escapeHtml(userAns)}</b> | Đáp án đúng: <b>${escapeHtml(correct)}</b></div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        box.dataset.loaded = "1";
+    }
+
     async function readJsonSafe(res) {
         const text = await res.text();
         if (!text) return null;
@@ -575,6 +654,10 @@
                 document.getElementById('assessmentResult').classList.remove('hidden');
                 document.getElementById('finalLevel').innerText = data.finalLevel;
                 document.getElementById('preferenceForm').classList.remove('hidden');
+                // allow detailed results
+                if (data.assessmentId) assessmentId = data.assessmentId;
+                const box = document.getElementById('placementDetail');
+                if (box) { box.dataset.loaded = ""; box.classList.add('hidden'); }
             } else if (data && data.question) {
                 renderQuestion(data.question);
             } else {

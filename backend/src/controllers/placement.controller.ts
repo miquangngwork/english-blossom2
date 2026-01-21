@@ -10,6 +10,52 @@ const TOTAL_QUESTIONS = 30; // Yêu cầu của bạn
 const normalizeOptions = (options: unknown): string[] =>
     Array.isArray(options) ? options.map((opt) => String(opt)) : [];
 
+function shuffleArray<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = a[i]!;
+        a[i] = a[j]!;
+        a[j] = tmp;
+    }
+    return a;
+}
+
+function roundToHalf(x: number) {
+    return Math.round(x * 2) / 2;
+}
+
+function clamp(x: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, x));
+}
+
+function thetaToCefr(theta: number): string {
+    if (theta < 2.5) return "A1";
+    if (theta < 4.5) return "A2";
+    if (theta < 6.5) return "B1";
+    if (theta < 8.5) return "B2";
+    return "C1";
+}
+
+function estimateTheta(items: Array<{ difficulty: number; isCorrect: boolean }>): number {
+    // Simple 1PL-like online update.
+    const a = 1.35; // discrimination
+    let theta = 3.0; // start near A2
+    let lr = 0.85;
+
+    for (const item of items) {
+        const b = item.difficulty;
+        const z = a * (theta - b);
+        const p = 1 / (1 + Math.exp(-z));
+        const y = item.isCorrect ? 1 : 0;
+        theta = theta + lr * a * (y - p);
+        theta = clamp(theta, 1, 9);
+        lr = Math.max(0.35, lr * 0.97);
+    }
+
+    return theta;
+}
+
 type OptionsColumnKind = "jsonb" | "json" | "textArray" | "unknown";
 let optionsColumnKind: OptionsColumnKind = "unknown";
 
@@ -113,13 +159,16 @@ export const startPlacement = async (req: AuthRequest, res: Response) => {
     // Bắt đầu từ mức 3.0 (A2)
     const startDiff = 3.0;
     const aiQuestion = await generateQuestion(startDiff);
+
+    // Shuffle options server-side so correct answer isn't always first.
+    const shuffledOptions = shuffleArray(aiQuestion.options);
     
     const item = await createAssessmentItemFlexible({
       assessmentId: assessment.id,
       difficulty: startDiff,
       skillTag: aiQuestion.skillTag,
       question: aiQuestion.question,
-      options: aiQuestion.options,
+            options: shuffledOptions,
       correctAnswer: aiQuestion.correctAnswer,
     });
 
@@ -160,56 +209,52 @@ export const nextQuestion = async (req: AuthRequest, res: Response) => {
         data: { userAnswer: answer, isCorrect }
     });
 
-    // --- LOGIC ADAPTIVE (5 ĐÚNG TĂNG, 3 SAI GIẢM) ---
-    const history = await prisma.assessmentItem.findMany({
+    // --- LOGIC ADAPTIVE (theta estimation) ---
+    const answeredItems = await prisma.assessmentItem.findMany({
         where: { assessmentId, isCorrect: { not: null } },
-        orderBy: { createdAt: 'desc' },
-        take: 10
+        orderBy: { createdAt: 'asc' },
+        select: { difficulty: true, isCorrect: true }
     });
 
-    let currentDifficulty = lastItem.difficulty;
-    let correctStreak = 0;
-    let wrongStreak = 0;
+    const theta = estimateTheta(
+        answeredItems.map((i) => ({
+            difficulty: i.difficulty,
+            isCorrect: Boolean(i.isCorrect),
+        }))
+    );
 
-    for (const item of history) {
-        if (item.isCorrect) { correctStreak++; wrongStreak = 0; } 
-        else { wrongStreak++; correctStreak = 0; }
-        if (correctStreak === 0 && wrongStreak === 0) break;
-    }
-
-    if (isCorrect) {
-        if (correctStreak >= 5) currentDifficulty = Math.min(9, currentDifficulty + 1.0);
-    } else {
-        if (wrongStreak >= 3) currentDifficulty = Math.max(1, currentDifficulty - 0.5);
-    }
+    // Choose next difficulty slightly below theta to target ~65% success.
+    const nextDifficulty = clamp(roundToHalf(theta - 0.5), 1, 9);
     // ------------------------------------------------
 
     // Kiểm tra kết thúc
     const count = await prisma.assessmentItem.count({ where: { assessmentId, isCorrect: { not: null } } });
 
     if (count >= TOTAL_QUESTIONS) {
-        const correctItems = await prisma.assessmentItem.findMany({ where: { assessmentId, isCorrect: true } });
-        const avgDiff = correctItems.length > 0 
-            ? correctItems.reduce((sum, i) => sum + i.difficulty, 0) / correctItems.length
-            : 1;
-        
-        const finalLevel = difficultyToCefrLevel(avgDiff);
+        const correctItems = await prisma.assessmentItem.findMany({
+            where: { assessmentId, isCorrect: true },
+            select: { id: true }
+        });
+
+        const finalTheta = theta;
+        const finalLevel = thetaToCefr(finalTheta);
         const finalScore = (correctItems.length / TOTAL_QUESTIONS) * 100;
 
         await prisma.assessment.update({ where: { id: assessmentId }, data: { finalScore, finalLevel } });
         await prisma.profile.update({ where: { userId }, data: { levelCefr: finalLevel } as any });
 
-        return res.json({ done: true, finalScore, finalLevel });
+        return res.json({ done: true, finalScore, finalLevel, assessmentId });
     }
 
     // Câu hỏi tiếp theo
-    const aiQuestion = await generateQuestion(currentDifficulty);
+        const aiQuestion = await generateQuestion(nextDifficulty);
+        const shuffledOptions = shuffleArray(aiQuestion.options);
     const newItem = await createAssessmentItemFlexible({
       assessmentId,
-      difficulty: currentDifficulty,
+            difficulty: nextDifficulty,
       skillTag: aiQuestion.skillTag,
       question: aiQuestion.question,
-      options: aiQuestion.options,
+            options: shuffledOptions,
       correctAnswer: aiQuestion.correctAnswer,
     });
 
@@ -248,5 +293,85 @@ export const getPlacementStatus = async (req: AuthRequest, res: Response) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Error" });
+    }
+};
+
+export const getPlacementResult = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.userId!;
+        const assessmentId = String(req.query.assessmentId || "").trim();
+
+        const assessment = assessmentId
+            ? await prisma.assessment.findFirst({
+                  where: { id: assessmentId, userId },
+                  include: {
+                      items: {
+                          orderBy: { createdAt: "asc" },
+                          select: {
+                              id: true,
+                              difficulty: true,
+                              skillTag: true,
+                              question: true,
+                              options: true,
+                              correctAnswer: true,
+                              userAnswer: true,
+                              isCorrect: true,
+                              createdAt: true,
+                          },
+                      },
+                  },
+              })
+            : await prisma.assessment.findFirst({
+                  where: { userId, finalScore: { not: null } },
+                  orderBy: { createdAt: "desc" },
+                  include: {
+                      items: {
+                          orderBy: { createdAt: "asc" },
+                          select: {
+                              id: true,
+                              difficulty: true,
+                              skillTag: true,
+                              question: true,
+                              options: true,
+                              correctAnswer: true,
+                              userAnswer: true,
+                              isCorrect: true,
+                              createdAt: true,
+                          },
+                      },
+                  },
+              });
+
+        if (!assessment) return res.status(404).json({ message: "Không tìm thấy kết quả" });
+
+        const items = assessment.items.map((it, idx) => ({
+            index: idx + 1,
+            id: it.id,
+            difficulty: it.difficulty,
+            skillTag: it.skillTag,
+            question: it.question,
+            options: normalizeOptions(it.options),
+            correctAnswer: it.correctAnswer,
+            userAnswer: it.userAnswer,
+            isCorrect: it.isCorrect,
+        }));
+
+        const answered = items.filter((i) => typeof i.isCorrect === "boolean");
+        const theta = estimateTheta(
+            answered.map((i) => ({ difficulty: i.difficulty, isCorrect: Boolean(i.isCorrect) }))
+        );
+
+        res.json({
+            assessmentId: assessment.id,
+            finalScore: assessment.finalScore,
+            finalLevel: assessment.finalLevel,
+            theta,
+            total: items.length,
+            correct: answered.filter((i) => i.isCorrect).length,
+            items,
+        });
+    } catch (e) {
+        console.error("getPlacementResult error:", e);
+        res.status(500).json({ message: "Lỗi hệ thống" });
     }
 };
